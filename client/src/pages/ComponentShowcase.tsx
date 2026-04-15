@@ -392,7 +392,7 @@ export default function ComponentsShowcase() {
                   <Button variant="destructive">Destructive</Button>
                   <Button variant="outline">Outline</Button>
                   <Button variant="ghost">Ghost</Button>
-                  <Button variant="link">Link</Button>
+                  <Button variant="ghost" className="underline">Link</Button>
                   <Button size="sm">Small</Button>
                   <Button size="lg">Large</Button>
                   <Button size="icon">

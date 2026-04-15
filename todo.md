@@ -1,0 +1,10 @@
+- [x] Fix word saving: register REST API routes (/api/words, /api/tags, etc.) in template server/_core/index.ts
+- [x] Add Import/Export as a proper view with its own icon in the bottom navigation bar
+- [x] Test word saving end-to-end (add word, verify persistence on refresh)
+- [x] Test import/export functionality
+- [x] Add 'word named' success animation after the rotation animation in AddWord
+- [x] Add Import/Export as a proper view with its own icon in the bottom navigation bar
+- [x] Thoroughly test: save 5 unique words with different settings and verify persistence on refresh
+- [ ] Test word saving through the actual AddWord UI and verify persistence after browser refresh
+- [ ] Test Import/Export through the bottom-nav UI
+- [ ] Fix outstanding TS errors (disableTransition, usePersistFn, ComponentShowcase, imageGeneration storagePut)

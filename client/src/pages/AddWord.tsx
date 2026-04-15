@@ -62,7 +62,7 @@ export default function AddWord({ onComplete }: AddWordProps) {
       setTimeout(() => {
         setShowSuccess(false);
         onComplete();
-      }, 1200);
+      }, 2800);
     },
   });
 
@@ -96,35 +96,86 @@ export default function AddWord({ onComplete }: AddWordProps) {
   if (showSuccess) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center pt-24"
       >
+        {/* Diamond rotation animation */}
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
         >
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect x="20" y="20" width="8" height="8" fill="hsl(188 35% 47%)" rx="1" transform="rotate(45 24 24)" />
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            {/* Outer ring draws in */}
             <motion.circle
-              cx="24" cy="24" r="20"
+              cx="32" cy="32" r="28"
               stroke="hsl(188 35% 47%)"
-              strokeWidth="1"
+              strokeWidth="0.8"
               fill="none"
               initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 0.5 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              animate={{ pathLength: 1, opacity: 0.4 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+            />
+            {/* Inner ring pulses */}
+            <motion.circle
+              cx="32" cy="32" r="20"
+              stroke="hsl(188 35% 57%)"
+              strokeWidth="0.5"
+              fill="none"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 0.3 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
+            />
+            {/* Diamond mark */}
+            <motion.rect
+              x="28" y="28" width="8" height="8"
+              fill="hsl(188 35% 47%)"
+              rx="1"
+              transform="rotate(45 32 32)"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.8 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
             />
           </svg>
         </motion.div>
+
+        {/* "word named" label */}
         <motion.p
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4 text-sm text-primary"
+          transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-5 text-xs text-muted-foreground/60 uppercase tracking-[0.25em]"
         >
-          Saved
+          word named
+        </motion.p>
+
+        {/* The actual word, revealed with a stagger */}
+        <motion.h2
+          initial={{ opacity: 0, y: 8, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-2 font-serif text-xl text-foreground tracking-wide"
+        >
+          {word}
+        </motion.h2>
+
+        {/* Subtle underline */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 1.0, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-3 w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+        />
+
+        {/* Saved confirmation */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.4 }}
+          className="mt-4 text-xs text-primary/60"
+        >
+          added to collection
         </motion.p>
       </motion.div>
     );

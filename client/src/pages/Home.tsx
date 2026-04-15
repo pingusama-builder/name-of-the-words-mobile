@@ -10,7 +10,7 @@ import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
 import ExportImport from "@/components/ExportImport";
 
-type View = "collection" | "calendar" | "tags" | "add";
+type View = "collection" | "calendar" | "tags" | "add" | "transfer";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>("collection");
@@ -149,7 +149,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 mt-2">
-                  <ExportImport onImportSuccess={() => window.location.reload()} />
+    
                   <AnimatePresence mode="popLayout">
                     {displayedWords.map((word, i) => (
                       <WordCard
@@ -199,6 +199,20 @@ export default function Home() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               <AddWord onComplete={() => setCurrentView("collection")} />
+            </motion.div>
+          )}
+
+          {currentView === "transfer" && (
+            <motion.div
+              key="transfer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="pt-4">
+                <ExportImport onImportSuccess={() => { setCurrentView("collection"); window.location.reload(); }} />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -276,14 +290,17 @@ export default function Home() {
           </button>
 
           <button
-            className="flex flex-col items-center gap-1 text-muted-foreground"
-            data-testid="nav-menu"
-            aria-label="Menu"
+            onClick={() => setCurrentView("transfer")}
+            className={`flex flex-col items-center gap-1 transition-colors ${
+              currentView === "transfer" ? "text-primary" : "text-muted-foreground"
+            }`}
+            data-testid="nav-transfer"
+            aria-label="Import/Export"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="5" r="1.2" fill="currentColor" />
-              <circle cx="10" cy="10" r="1.2" fill="currentColor" />
-              <circle cx="10" cy="15" r="1.2" fill="currentColor" />
+              <path d="M6 4v12M14 4v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M6 4l-3 3M6 4l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M14 16l-3-3M14 16l3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>

@@ -3,8 +3,37 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
 import { eq, like, desc, or } from "drizzle-orm";
 
-const sqlite = new Database("data.db");
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dbPath = path.resolve(__dirname, "..", "data.db");
+const sqlite = new Database(dbPath);
 sqlite.pragma("journal_mode = WAL");
+sqlite.pragma("wal_autocheckpoint = 1");
+
+// Create tables if they don't exist
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS words (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    word TEXT NOT NULL,
+    origin_language TEXT NOT NULL,
+    meaning TEXT,
+    context TEXT,
+    rating_essence INTEGER DEFAULT 0,
+    rating_beauty INTEGER DEFAULT 0,
+    rating_subtlety INTEGER DEFAULT 0,
+    tags TEXT DEFAULT '[]',
+    paired_word TEXT,
+    paired_meaning TEXT,
+    date_added TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+  );
+`);
 
 export const db = drizzle(sqlite);
 
@@ -36,14 +65,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchWordsByTag(tag: string): Promise<Word[]> {
-    return db.select().from(words).all().then(all =>
-      all.filter(w => {
-        try {
-          const t = JSON.parse(w.tags || "[]");
-          return t.includes(tag);
-        } catch { return false; }
-      })
-    );
+    const all = db.select().from(words).all() as Word[];
+    return all.filter((w: Word) => {
+      try {
+        const t = JSON.parse(w.tags || "[]");
+        return t.includes(tag);
+      } catch { return false; }
+    });
   }
 
   async searchWords(query: string): Promise<Word[]> {
