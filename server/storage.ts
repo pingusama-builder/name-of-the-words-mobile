@@ -54,7 +54,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWord(word: InsertWord): Promise<Word> {
-    return db.insert(words).values(word).returning().get();
+    const result = db.insert(words).values(word).run();
+    return db.select().from(words).where(eq(words.id, result.lastInsertRowid as number)).get() as Word;
   }
 
   async deleteWord(id: number): Promise<void> {
@@ -73,8 +74,9 @@ export class DatabaseStorage implements IStorage {
 
   async createTag(tag: InsertTag): Promise<Tag> {
     const existing = db.select().from(tags).where(eq(tags.name, tag.name)).get();
-    if (existing) return existing;
-    return db.insert(tags).values(tag).returning().get();
+    if (existing) return existing as Tag;
+    const result = db.insert(tags).values(tag).run();
+    return db.select().from(tags).where(eq(tags.id, result.lastInsertRowid as number)).get() as Tag;
   }
 
   async getCalendarDates(): Promise<{ date: string; count: number }[]> {

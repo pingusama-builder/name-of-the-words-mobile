@@ -102,6 +102,22 @@ export default function Landing() {
         言之名
       </motion.p>
 
+      {/* Add word button — + icon */}
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
+        onClick={() => navigate("/add")}
+        className="group relative w-12 h-12 rounded-full border border-primary/30 flex items-center justify-center
+          transition-all duration-500 hover:border-primary/60 hover:bg-primary/5 mb-4"
+        data-testid="add-button"
+        aria-label="Add word"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-primary/70 group-hover:text-primary transition-colors duration-300">
+          <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </motion.button>
+
       {/* Enter button — simple, minimal */}
       <motion.button
         initial={{ opacity: 0 }}
