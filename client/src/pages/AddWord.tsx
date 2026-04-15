@@ -53,7 +53,8 @@ export default function AddWord({ onComplete }: AddWordProps) {
   const mutation = useMutation({
     mutationFn: async (tagsToSave: string[]) => {
       const now = new Date();
-      const dateAdded = now.toISOString().split("T")[0];
+      // Use local date (YYYY-MM-DD) so calendar reflects the user's timezone, not UTC
+      const dateAdded = now.toLocaleDateString('en-CA'); // en-CA gives YYYY-MM-DD format in local tz
       const res = await apiRequest("POST", "/api/words", {
         word,
         originLanguage,

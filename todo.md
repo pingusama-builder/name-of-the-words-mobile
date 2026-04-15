@@ -35,3 +35,7 @@
 - [x] Update Diamond component to use colors array from API (not derived from ID)
 - [x] Fix: switching to Calendar view causes blank screen and all nav buttons stop working — fixed by h-screen flex layout with shrink-0 nav + ViewErrorBoundary around CalendarView
 - [x] Verify bottom navigation end-to-end from Calendar view: Collection, Add Word, Tags, Import/Export must each switch views correctly
+- [x] Fix timezone: send local date from browser as dateAdded instead of deriving UTC date on server
+- [x] Fix user isolation: authenticated users must only see their own words (not NULL-userId legacy words); new users get a clean slate
+- [x] Scope getWordById by userId to prevent cross-user access by ID (PUT and DELETE now check ownership)
+- [x] Update import flow: uses dateAdded from imported file (server-side fallback to UTC is acceptable for imports)

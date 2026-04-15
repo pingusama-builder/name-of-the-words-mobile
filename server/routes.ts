@@ -125,7 +125,15 @@ export async function registerRoutes(
   // Delete a word
   app.delete("/api/words/:id", async (req, res) => {
     try {
-      await storage.deleteWord(Number(req.params.id));
+      const userId = await getUserFromRequest(req);
+      const id = Number(req.params.id);
+      const existing = await storage.getWordById(id);
+      if (!existing) return res.status(404).json({ message: "Word not found" });
+      // Only allow deleting own words
+      if (existing.userId && userId && existing.userId !== userId) {
+        return res.status(403).json({ message: "Not authorized" });
+      }
+      await storage.deleteWord(id);
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message || "Failed to delete word" });
@@ -193,6 +201,7 @@ export async function registerRoutes(
           ratingEssence: w.ratingEssence ?? 0, ratingBeauty: w.ratingBeauty ?? 0, ratingSubtlety: w.ratingSubtlety ?? 0,
           tags: Array.isArray(w.tags) ? JSON.stringify(w.tags) : (w.tags || "[]"),
           pairedWord: w.pairedWord, pairedMeaning: w.pairedMeaning,
+          // Prefer the date from the import file; fall back to today in UTC (import is server-side, no browser tz available)
           dateAdded: w.dateAdded || new Date().toISOString().split("T")[0],
           createdAt: w.createdAt || new Date().toISOString(),
           userId: userId ?? null,

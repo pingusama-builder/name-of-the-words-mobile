@@ -1,5 +1,5 @@
 import { type Word, type InsertWord, words, type Tag, type InsertTag, tags } from "@shared/schema";
-import { eq, like, desc, or, and, isNull } from "drizzle-orm";
+import { eq, like, desc, and, isNull, or } from "drizzle-orm";
 import { getDb } from "./db";
 
 /** Generate a visually distinct random hex color for a new word */
@@ -20,11 +20,14 @@ function generateUniqueColor(): string {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-// Helper: build a userId filter that includes both the user's words AND legacy words (userId IS NULL)
+// Helper: build a userId filter — authenticated users see ONLY their own words; unauthenticated see only NULL-userId words
 function userScope(userId?: string) {
-  if (!userId) return undefined;
-  // Show the user's own words + anonymous legacy words
-  return or(eq(words.userId, userId), isNull(words.userId));
+  if (userId) {
+    // Authenticated: strict isolation — only this user's words
+    return eq(words.userId, userId);
+  }
+  // Unauthenticated: only legacy/anonymous words
+  return isNull(words.userId);
 }
 
 export interface IStorage {
@@ -47,11 +50,7 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const query = db.select().from(words);
-    const result = scope
-      ? await query.where(scope).orderBy(desc(words.createdAt))
-      : await query.orderBy(desc(words.createdAt));
-    return result;
+    return db.select().from(words).where(scope).orderBy(desc(words.createdAt));
   }
 
   async getWordById(id: number): Promise<Word | undefined> {
@@ -65,18 +64,14 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const dateFilter = eq(words.dateAdded, date);
-    const condition = scope ? and(dateFilter, scope) : dateFilter;
-    return db.select().from(words).where(condition);
+    return db.select().from(words).where(and(eq(words.dateAdded, date), scope));
   }
 
   async searchWordsByTag(tag: string, userId?: string): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const all = scope
-      ? await db.select().from(words).where(scope)
-      : await db.select().from(words);
+    const all = await db.select().from(words).where(scope);
     return all.filter((w: Word) => {
       try {
         const t = JSON.parse(w.tags || "[]");
@@ -91,8 +86,7 @@ export class DatabaseStorage implements IStorage {
     const q = `%${query}%`;
     const textFilter = or(like(words.word, q), like(words.meaning, q), like(words.context, q));
     const scope = userScope(userId);
-    const condition = scope ? and(textFilter, scope) : textFilter;
-    return db.select().from(words).where(condition);
+    return db.select().from(words).where(and(textFilter, scope));
   }
 
   async createWord(word: InsertWord): Promise<Word> {
@@ -127,9 +121,7 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     if (!db) return undefined;
     const scope = userScope(userId);
-    const all = scope
-      ? await db.select().from(words).where(scope)
-      : await db.select().from(words);
+    const all = await db.select().from(words).where(scope);
     if (all.length === 0) return undefined;
     return all[Math.floor(Math.random() * all.length)];
   }
@@ -155,9 +147,7 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const all = scope
-      ? await db.select().from(words).where(scope)
-      : await db.select().from(words);
+    const all = await db.select().from(words).where(scope);
     const map = new Map<string, { id: number; color: string | null }[]>();
     for (const w of all) {
       const existing = map.get(w.dateAdded) || [];
