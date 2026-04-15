@@ -2,6 +2,24 @@ import { type Word, type InsertWord, words, type Tag, type InsertTag, tags } fro
 import { eq, like, desc, or, and, isNull } from "drizzle-orm";
 import { getDb } from "./db";
 
+/** Generate a visually distinct random hex color for a new word */
+function generateUniqueColor(): string {
+  // Use a wide spread of hues with consistent saturation/lightness for readability
+  const hue = Math.floor(Math.random() * 360);
+  const saturation = 55 + Math.floor(Math.random() * 25); // 55-80%
+  const lightness = 52 + Math.floor(Math.random() * 16);  // 52-68%
+  // HSL to hex
+  const s = saturation / 100;
+  const l = lightness / 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + hue / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, "0");
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 // Helper: build a userId filter that includes both the user's words AND legacy words (userId IS NULL)
 function userScope(userId?: string) {
   if (!userId) return undefined;
@@ -21,7 +39,7 @@ export interface IStorage {
   getRandomWord(userId?: string): Promise<Word | undefined>;
   getAllTags(): Promise<Tag[]>;
   createTag(tag: InsertTag): Promise<Tag>;
-  getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[] }[]>;
+  getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -80,6 +98,10 @@ export class DatabaseStorage implements IStorage {
   async createWord(word: InsertWord): Promise<Word> {
     const db = await getDb();
     if (!db) throw new Error("Database not available");
+    // Auto-assign a unique color if not provided
+    if (!word.color) {
+      word = { ...word, color: generateUniqueColor() };
+    }
     const result = await db.insert(words).values(word);
     const insertId = (result as any)[0]?.insertId ?? Number((result as any).insertId);
     const created = await db.select().from(words).where(eq(words.id, insertId)).limit(1);
@@ -129,20 +151,25 @@ export class DatabaseStorage implements IStorage {
     return created[0] as Tag;
   }
 
-  async getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[] }[]> {
+  async getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
     const all = scope
       ? await db.select().from(words).where(scope)
       : await db.select().from(words);
-    const map = new Map<string, number[]>();
+    const map = new Map<string, { id: number; color: string | null }[]>();
     for (const w of all) {
       const existing = map.get(w.dateAdded) || [];
-      existing.push(w.id);
+      existing.push({ id: w.id, color: w.color });
       map.set(w.dateAdded, existing);
     }
-    return Array.from(map.entries()).map(([date, wordIds]) => ({ date, count: wordIds.length, wordIds }));
+    return Array.from(map.entries()).map(([date, entries]) => ({
+      date,
+      count: entries.length,
+      wordIds: entries.map(e => e.id),
+      colors: entries.map(e => e.color || "#5b9bd5"),
+    }));
   }
 }
 

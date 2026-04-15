@@ -17,6 +17,7 @@ export const words = mysqlTable("words", {
   dateAdded: varchar("date_added", { length: 32 }).notNull(), // ISO date string YYYY-MM-DD
   createdAt: varchar("created_at", { length: 64 }).notNull(), // ISO datetime
   userId: varchar("user_id", { length: 128 }), // Manus OAuth openId
+  color: varchar("color", { length: 16 }), // unique hex color per word e.g. "#a3c4f5"
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({

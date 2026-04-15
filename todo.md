@@ -8,11 +8,11 @@
 - [x] Test word saving through the actual AddWord UI and verify persistence after browser refresh
 - [x] Test Import/Export through the bottom-nav UI
 - [x] Fix outstanding TS errors (disableTransition, usePersistFn, ComponentShowcase, imageGeneration storagePut)
-- [ ] Rebuild CalendarView with BookDiamond-inspired diamond indicators per date (1 word = single solid diamond, 2 = inner gem + outer facet ring, 3+ = stacked layered diamonds, each word in distinct color)
-- [ ] Add userId to words table and migrate DB (ALTER TABLE)
-- [ ] Wire Manus OAuth login: show login button when unauthenticated, scope all word API calls to current user
-- [ ] Build edit word card: tap word card → slide-up sheet pre-filled with existing data, save updates via PUT /api/words/:id
-- [ ] Fix BookDiamond calendar: each word gets deterministic color by ID; 1=solid gem, 2=gem+outer ring, 3+=stacked layers
+- [x] Rebuild CalendarView with BookDiamond-inspired diamond indicators per date (1 word = single solid diamond, 2 = inner gem + outer facet ring, 3+ = stacked layered diamonds, each word in distinct color)
+- [x] Add userId to words table and migrate DB (ALTER TABLE)
+- [x] Wire Manus OAuth login: show login button when unauthenticated, scope all word API calls to current user
+- [x] Build edit word card: tap word card → slide-up sheet pre-filled with existing data, save updates via PUT /api/words/:id
+- [x] Fix BookDiamond calendar: each word gets unique stored color; 1=solid gem, 2=gem+outer ring, 3+=stacked layers
 - [x] Fix TypeScript errors in routes.ts: await getUserFromRequest, add updateWord to storage
 - [x] Push DB schema with pnpm db:push to ensure users table exists in MySQL
 - [x] Add Login/Logout button + user avatar/name in app header (Home.tsx)
@@ -27,3 +27,9 @@
 - [x] Build EditWord slide-up sheet component pre-filled with word data (all fields: word, language, meaning, context, paired word, ratings, tags)
 - [x] Wire edit button into WordDetail view (tap pencil icon → opens EditWord sheet)
 - [x] Write vitest tests for PUT /api/words/:id endpoint
+- [x] Build Diamond SVG component: 1=solid gem, 2=gem+outer facet ring, 3+=stacked layered diamonds, unique color per word
+- [x] Wire Diamond into CalendarView day cells using /api/calendar data
+- [x] Test CalendarView diamond indicators end-to-end in browser
+- [x] Add color column to words table (ALTER TABLE), assign random unique color on word creation
+- [x] Update calendar API to return per-word colors alongside wordIds
+- [x] Update Diamond component to use colors array from API (not derived from ID)

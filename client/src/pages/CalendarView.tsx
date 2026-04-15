@@ -17,8 +17,9 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const { data: calendarData = [] } = useQuery<{ date: string; count: number }[]>({
+  const { data: calendarData = [] } = useQuery<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>({
     queryKey: ["/api/calendar"],
+    queryFn: () => apiRequest("GET", "/api/calendar").then(r => r.json()),
   });
 
   const { data: dateWords = [] } = useQuery<Word[]>({
@@ -45,6 +46,7 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
   const todayStr = today.toISOString().split("T")[0];
 
   const dateCountMap = new Map(calendarData.map(d => [d.date, d.count]));
+  const dateColorsMap = new Map(calendarData.map(d => [d.date, d.colors ?? []]));  
 
   const prevMonth = () => {
     setCurrentMonth(prev => {
@@ -132,7 +134,11 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
                 {day}
               </span>
               {wordCount > 0 && (
-                <Diamond count={Math.min(wordCount, 3)} size={16} />
+                <Diamond
+                  count={Math.min(wordCount, 3)}
+                  colors={dateColorsMap.get(dateStr)}
+                  size={16}
+                />
               )}
             </button>
           );

@@ -1,69 +1,126 @@
+/**
+ * BookDiamond — calendar indicator showing words added on a given day.
+ *
+ * Visual states:
+ *   1 word  → single solid gem (filled diamond)
+ *   2 words → inner gem + outer facet ring (two concentric diamonds)
+ *   3+ words → stacked layered diamonds (three concentric diamonds)
+ *
+ * Colors are deterministic by word ID so the same word always gets the same color
+ * regardless of its position in the list.
+ */
+
+export const DIAMOND_COLORS = [
+  "#5b9bd5", // sky blue
+  "#d4749a", // rose
+  "#d4a34f", // amber
+  "#4fb8a3", // teal
+  "#9b7fd4", // violet
+  "#6daa6d", // sage green
+  "#d47a5b", // terracotta
+  "#7ab8d4", // powder blue
+];
+
+/** Map a word ID to a palette color deterministically */
+export function colorForId(id: number): string {
+  return DIAMOND_COLORS[Math.abs(id) % DIAMOND_COLORS.length];
+}
+
 interface DiamondProps {
+  /** Number of words on this day (controls visual complexity) */
   count: number;
+  /** Per-word colors from DB — each word has a unique stored color */
+  colors?: string[];
   size?: number;
 }
 
-const DIAMOND_COLORS = [
-  "#5b9bd5", // blue
-  "#d4749a", // pink
-  "#d4a34f", // gold
-  "#4fb8a3", // teal
-  "#9b7fd4", // purple
-  "#6daa6d", // green
-];
-
-// Generates a diamond icon similar to BookDiamond
-// Count determines complexity: 1 = solid gem, 2 = inner gem + ring, 3+ = layered
-export default function Diamond({ count, size = 14 }: DiamondProps) {
-  const colorIndex = (count - 1) % DIAMOND_COLORS.length;
-  const baseColor = DIAMOND_COLORS[colorIndex];
-  const halfSize = size / 2;
-
+export default function Diamond({ count, colors = [], size = 16 }: DiamondProps) {
   if (count === 0) return null;
 
+  const half = size / 2;
+
+  // Use stored per-word colors, fall back to palette if not provided
+  const c0 = colors[0] ?? DIAMOND_COLORS[0];
+  const c1 = colors[1] ?? DIAMOND_COLORS[1];
+  const c2 = colors[2] ?? DIAMOND_COLORS[2];
+
+  // Diamond geometry helpers — all as fractions of `size`
+  const gem = (frac: number) => {
+    const half_w = size * frac * 0.5;
+    return {
+      x: half - half_w,
+      y: half - half_w,
+      w: size * frac,
+      h: size * frac,
+    };
+  };
+
+  const g0 = gem(0.44); // inner solid gem
+  const g1 = gem(0.66); // middle ring
+  const g2 = gem(0.86); // outer ring
+
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {/* Base diamond */}
-      <rect
-        x={halfSize - size * 0.28}
-        y={halfSize - size * 0.28}
-        width={size * 0.56}
-        height={size * 0.56}
-        fill={baseColor}
-        opacity={0.9}
-        transform={`rotate(45 ${halfSize} ${halfSize})`}
-        rx={1}
-      />
-      {count >= 2 && (
-        <rect
-          x={halfSize - size * 0.38}
-          y={halfSize - size * 0.38}
-          width={size * 0.76}
-          height={size * 0.76}
-          fill="none"
-          stroke={DIAMOND_COLORS[(colorIndex + 1) % DIAMOND_COLORS.length]}
-          strokeWidth={1}
-          opacity={0.7}
-          transform={`rotate(45 ${halfSize} ${halfSize})`}
-          rx={1}
-        />
-      )}
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      aria-label={`${count} word${count !== 1 ? "s" : ""}`}
+    >
+      {/* Outermost ring — only for 3+ words */}
       {count >= 3 && (
         <rect
-          x={halfSize - size * 0.45}
-          y={halfSize - size * 0.45}
-          width={size * 0.9}
-          height={size * 0.9}
+          x={g2.x}
+          y={g2.y}
+          width={g2.w}
+          height={g2.h}
           fill="none"
-          stroke={DIAMOND_COLORS[(colorIndex + 2) % DIAMOND_COLORS.length]}
-          strokeWidth={0.8}
-          opacity={0.5}
-          transform={`rotate(45 ${halfSize} ${halfSize})`}
-          rx={1}
+          stroke={c2}
+          strokeWidth={0.9}
+          opacity={0.45}
+          transform={`rotate(45 ${half} ${half})`}
+          rx={0.8}
         />
       )}
+
+      {/* Middle ring — for 2+ words */}
+      {count >= 2 && (
+        <rect
+          x={g1.x}
+          y={g1.y}
+          width={g1.w}
+          height={g1.h}
+          fill="none"
+          stroke={c1}
+          strokeWidth={1}
+          opacity={0.65}
+          transform={`rotate(45 ${half} ${half})`}
+          rx={0.8}
+        />
+      )}
+
+      {/* Inner solid gem — always present */}
+      <rect
+        x={g0.x}
+        y={g0.y}
+        width={g0.w}
+        height={g0.h}
+        fill={c0}
+        opacity={0.92}
+        transform={`rotate(45 ${half} ${half})`}
+        rx={0.8}
+      />
+
+      {/* Highlight glint on the gem */}
+      <rect
+        x={half - size * 0.08}
+        y={half - size * 0.16}
+        width={size * 0.08}
+        height={size * 0.08}
+        fill="white"
+        opacity={0.35}
+        transform={`rotate(45 ${half} ${half})`}
+        rx={0.4}
+      />
     </svg>
   );
 }
-
-export { DIAMOND_COLORS };
