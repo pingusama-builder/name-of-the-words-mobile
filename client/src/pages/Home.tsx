@@ -20,6 +20,7 @@ export default function Home() {
 
   const { data: words = [], isLoading } = useQuery<Word[]>({
     queryKey: ["/api/words"],
+    queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
   });
 
   const { data: searchResults = [] } = useQuery<Word[]>({
@@ -30,6 +31,11 @@ export default function Home() {
         : Promise.resolve([]),
     enabled: searchQuery.length > 0,
   });
+
+  // Refetch words when import succeeds
+  const refetchWords = () => {
+    window.location.reload();
+  };
 
   const handleRandomPick = async () => {
     try {
