@@ -26,3 +26,7 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // TODO: Add your tables here
+
+// Word bank tables
+export { words, tags, insertWordSchema, insertTagSchema } from "../shared/schema";
+export type { Word, InsertWord, Tag, InsertTag } from "../shared/schema";

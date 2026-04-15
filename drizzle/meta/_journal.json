@@ -8,6 +8,13 @@
       "when": 1776265734367,
       "tag": "0000_real_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1776268922822,
+      "tag": "0001_concerned_black_panther",
+      "breakpoints": true
     }
   ]
 }

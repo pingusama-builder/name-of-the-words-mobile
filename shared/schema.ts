@@ -1,21 +1,21 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { int, mysqlTable, text, varchar } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const words = sqliteTable("words", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  word: text("word").notNull(),
-  originLanguage: text("origin_language").notNull(), // "cantonese" | "mandarin" | "english" | "other"
+export const words = mysqlTable("words", {
+  id: int("id").autoincrement().primaryKey(),
+  word: varchar("word", { length: 255 }).notNull(),
+  originLanguage: varchar("origin_language", { length: 64 }).notNull(), // "cantonese" | "mandarin" | "english" | "other"
   meaning: text("meaning"), // user-defined meaning
   context: text("context"), // sentence context
-  ratingEssence: integer("rating_essence").default(0), // 0-12 clock positions
-  ratingBeauty: integer("rating_beauty").default(0),
-  ratingSubtlety: integer("rating_subtlety").default(0),
-  tags: text("tags").default("[]"), // JSON array of strings
-  pairedWord: text("paired_word"), // for "perfect match" pairs
+  ratingEssence: int("rating_essence").default(0), // 0-12 clock positions
+  ratingBeauty: int("rating_beauty").default(0),
+  ratingSubtlety: int("rating_subtlety").default(0),
+  tags: text("tags"), // JSON array of strings - default handled in application layer
+  pairedWord: varchar("paired_word", { length: 255 }), // for "perfect match" pairs
   pairedMeaning: text("paired_meaning"),
-  dateAdded: text("date_added").notNull(), // ISO date string YYYY-MM-DD
-  createdAt: text("created_at").notNull(), // ISO datetime
+  dateAdded: varchar("date_added", { length: 32 }).notNull(), // ISO date string YYYY-MM-DD
+  createdAt: varchar("created_at", { length: 64 }).notNull(), // ISO datetime
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({
@@ -25,9 +25,9 @@ export const insertWordSchema = createInsertSchema(words).omit({
 export type InsertWord = z.infer<typeof insertWordSchema>;
 export type Word = typeof words.$inferSelect;
 
-export const tags = sqliteTable("tags", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name").notNull().unique(),
+export const tags = mysqlTable("tags", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(),
 });
 
 export const insertTagSchema = createInsertSchema(tags).omit({ id: true });

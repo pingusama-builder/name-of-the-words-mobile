@@ -5,6 +5,6 @@
 - [x] Add 'word named' success animation after the rotation animation in AddWord
 - [x] Add Import/Export as a proper view with its own icon in the bottom navigation bar
 - [x] Thoroughly test: save 5 unique words with different settings and verify persistence on refresh
-- [ ] Test word saving through the actual AddWord UI and verify persistence after browser refresh
-- [ ] Test Import/Export through the bottom-nav UI
-- [ ] Fix outstanding TS errors (disableTransition, usePersistFn, ComponentShowcase, imageGeneration storagePut)
+- [x] Test word saving through the actual AddWord UI and verify persistence after browser refresh
+- [x] Test Import/Export through the bottom-nav UI
+- [x] Fix outstanding TS errors (disableTransition, usePersistFn, ComponentShowcase, imageGeneration storagePut)
