@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import CircularDial from "@/components/CircularDial";
 import type { Tag } from "@shared/schema";
@@ -24,18 +24,34 @@ export default function AddWord({ onComplete }: AddWordProps) {
   const [pairedMeaning, setPairedMeaning] = useState("");
   const [contextWarning, setContextWarning] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
     queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
   });
 
-  const filteredSuggestions = tagInput.length > 0
-    ? allTags.filter(t => t.name.toLowerCase().includes(tagInput.toLowerCase()) && !selectedTags.includes(t.name))
-    : [];
+  // Suggestions: match input against existing tags, exclude already-selected
+  const filteredSuggestions = tagInput.trim().length > 0
+    ? allTags.filter(
+        t => t.name.toLowerCase().includes(tagInput.toLowerCase()) &&
+             !selectedTags.includes(t.name)
+      )
+    : allTags.filter(t => !selectedTags.includes(t.name)).slice(0, 6);
+
+  const handleAddTag = (tag: string) => {
+    const trimmed = tag.trim();
+    if (trimmed && !selectedTags.includes(trimmed)) {
+      setSelectedTags(prev => [...prev, trimmed]);
+    }
+    setTagInput("");
+    setShowSuggestions(false);
+    tagInputRef.current?.focus();
+  };
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (tagsToSave: string[]) => {
       const now = new Date();
       const dateAdded = now.toISOString().split("T")[0];
       const res = await apiRequest("POST", "/api/words", {
@@ -46,7 +62,7 @@ export default function AddWord({ onComplete }: AddWordProps) {
         ratingEssence,
         ratingBeauty,
         ratingSubtlety,
-        tags: JSON.stringify(selectedTags),
+        tags: tagsToSave,   // send as array — server normalises
         pairedWord: pairedWord || null,
         pairedMeaning: pairedMeaning || null,
         dateAdded,
@@ -66,24 +82,25 @@ export default function AddWord({ onComplete }: AddWordProps) {
     },
   });
 
-  const handleAddTag = (tag: string) => {
-    const trimmed = tag.trim();
-    if (trimmed && !selectedTags.includes(trimmed)) {
-      setSelectedTags([...selectedTags, trimmed]);
-    }
-    setTagInput("");
-  };
-
   const handleSubmit = () => {
     if (!word.trim()) return;
-    // Context warning
+
+    // Flush any pending tagInput text into selectedTags
+    const finalTags = [...selectedTags];
+    const pendingTag = tagInput.trim();
+    if (pendingTag && !finalTags.includes(pendingTag)) {
+      finalTags.push(pendingTag);
+    }
+
+    // Context warning for single words without context
     if (!context.trim() && word.trim().split(/\s+/).length === 1) {
       if (!contextWarning) {
         setContextWarning(true);
         return;
       }
     }
-    mutation.mutate();
+
+    mutation.mutate(finalTags);
   };
 
   const languages = [
@@ -100,14 +117,12 @@ export default function AddWord({ onComplete }: AddWordProps) {
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center pt-24"
       >
-        {/* Diamond rotation animation */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.1 }}
         >
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-            {/* Outer ring draws in */}
             <motion.circle
               cx="32" cy="32" r="28"
               stroke="hsl(188 35% 47%)"
@@ -117,7 +132,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
               animate={{ pathLength: 1, opacity: 0.4 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
             />
-            {/* Inner ring pulses */}
             <motion.circle
               cx="32" cy="32" r="20"
               stroke="hsl(188 35% 57%)"
@@ -127,7 +141,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
               animate={{ pathLength: 1, opacity: 0.3 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
             />
-            {/* Diamond mark */}
             <motion.rect
               x="28" y="28" width="8" height="8"
               fill="hsl(188 35% 47%)"
@@ -140,7 +153,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
           </svg>
         </motion.div>
 
-        {/* "word named" label */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -150,7 +162,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
           word named
         </motion.p>
 
-        {/* The actual word, revealed with a stagger */}
         <motion.h2
           initial={{ opacity: 0, y: 8, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -160,7 +171,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
           {word}
         </motion.h2>
 
-        {/* Subtle underline */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
@@ -168,7 +178,6 @@ export default function AddWord({ onComplete }: AddWordProps) {
           className="mt-3 w-16 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"
         />
 
-        {/* Saved confirmation */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -247,7 +256,7 @@ export default function AddWord({ onComplete }: AddWordProps) {
         )}
       </div>
 
-      {/* Paired word (for perfect match) */}
+      {/* Paired word */}
       <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
         <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Perfect Match Pair</p>
         <div className="flex gap-2">
@@ -276,75 +285,107 @@ export default function AddWord({ onComplete }: AddWordProps) {
 
       {/* Rating dials */}
       <div className="flex justify-around mb-6">
-        <CircularDial
-          value={ratingEssence}
-          onChange={setRatingEssence}
-          label="Essence"
-          color="#4fb8a3"
-        />
-        <CircularDial
-          value={ratingBeauty}
-          onChange={setRatingBeauty}
-          label="Beauty"
-          color="#9b7fd4"
-        />
-        <CircularDial
-          value={ratingSubtlety}
-          onChange={setRatingSubtlety}
-          label="Subtlety"
-          color="#d4a34f"
-        />
+        <CircularDial value={ratingEssence} onChange={setRatingEssence} label="Essence" color="#4fb8a3" />
+        <CircularDial value={ratingBeauty} onChange={setRatingBeauty} label="Beauty" color="#9b7fd4" />
+        <CircularDial value={ratingSubtlety} onChange={setRatingSubtlety} label="Subtlety" color="#d4a34f" />
       </div>
 
       {/* Tags */}
       <div className="mb-6">
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {selectedTags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary/80 px-2 py-0.5 rounded-full"
-            >
-              {tag}
-              <button
-                onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))}
-                className="hover:text-primary"
+        {/* Selected tags */}
+        {selectedTags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {selectedTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary/80 px-2 py-0.5 rounded-full border border-primary/20"
               >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
+                {tag}
+                <button
+                  onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))}
+                  className="hover:text-primary leading-none"
+                  aria-label={`Remove tag ${tag}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Tag input with autocomplete */}
         <div className="relative">
           <input
+            ref={tagInputRef}
             type="text"
-            placeholder="Add tags..."
+            placeholder={selectedTags.length === 0 ? "Add tags... (press Enter or comma)" : "Add more tags..."}
             value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
+            onChange={(e) => {
+              setTagInput(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => {
+              // Delay so click on suggestion registers first
+              setTimeout(() => setShowSuggestions(false), 150);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === ",") {
                 e.preventDefault();
-                handleAddTag(tagInput);
+                if (tagInput.trim()) handleAddTag(tagInput);
+              } else if (e.key === "Backspace" && !tagInput && selectedTags.length > 0) {
+                // Remove last tag on backspace when input is empty
+                setSelectedTags(prev => prev.slice(0, -1));
               }
             }}
             className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
               placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors"
             data-testid="input-tags"
           />
+
           {/* Autocomplete dropdown */}
-          {filteredSuggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-popover border border-popover-border rounded-lg overflow-hidden z-10">
-              {filteredSuggestions.slice(0, 5).map((tag) => (
-                <button
-                  key={tag.id}
-                  onClick={() => handleAddTag(tag.name)}
-                  className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  {tag.name}
-                </button>
-              ))}
-            </div>
-          )}
+          <AnimatePresence>
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg overflow-hidden z-20 shadow-lg"
+              >
+                {filteredSuggestions.slice(0, 6).map((tag) => (
+                  <button
+                    key={tag.id}
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // prevent blur before click
+                      handleAddTag(tag.name);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors flex items-center gap-2"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                    {tag.name}
+                  </button>
+                ))}
+                {tagInput.trim() && !allTags.some(t => t.name.toLowerCase() === tagInput.trim().toLowerCase()) && (
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleAddTag(tagInput);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-primary/70 hover:bg-primary/10 transition-colors flex items-center gap-2 border-t border-border/20"
+                  >
+                    <span className="text-primary/50">+</span>
+                    Create &ldquo;{tagInput.trim()}&rdquo;
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
+        <p className="text-xs text-muted-foreground/40 mt-1.5">
+          Press Enter or comma to add · Backspace to remove last
+        </p>
       </div>
 
       {/* Save button */}

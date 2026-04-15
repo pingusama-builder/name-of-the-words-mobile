@@ -18,3 +18,7 @@
 - [x] Add Login/Logout button + user avatar/name in app header (Home.tsx)
 - [x] Test login flow end-to-end in browser
 - [x] Write vitest tests for auth helper and word scoping
+- [x] Fix tag saving: new tags added with a word must be persisted to the tags table and appear in tag cloud view
+- [x] Fix tag cloud: TagCloud component reads tags from word.tags JSON field (already correct, root cause was server-side)
+- [x] Add tag autocomplete in AddWord: show existing tags as suggestions when typing
+- [x] Remove all occurrences of "Mobile First" / "Mobile first" from the entire project (no user-visible text)

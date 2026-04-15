@@ -1,4 +1,4 @@
-# Design Brainstorm: Name of the Words - Mobile First
+# Design Brainstorm: Name of the Words
 
 ## Selected Design Approach: Modern Minimalist with Functional Elegance
 

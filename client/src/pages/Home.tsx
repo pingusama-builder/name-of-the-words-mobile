@@ -73,7 +73,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header - Mobile First: sticky, responsive padding */}
+      {/* Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3 border-b border-border/30 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-2">
           <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words">
@@ -203,7 +203,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Main content area - Mobile First: responsive padding */}
+      {/* Main content area */}
       <main className="flex-1 overflow-y-auto px-4 sm:px-5 pb-28 sm:pb-24">
         <AnimatePresence mode="wait">
           {currentView === "collection" && (
@@ -310,7 +310,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Bottom navigation — icon-based, Mobile First */}
+      {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border/30">
         <div className="flex items-center justify-around py-2 sm:py-3 max-w-full sm:max-w-md mx-auto px-2 sm:px-0">
           <button

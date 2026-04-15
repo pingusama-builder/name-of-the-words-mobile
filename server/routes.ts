@@ -72,14 +72,26 @@ export async function registerRoutes(
   app.post("/api/words", async (req, res) => {
     try {
       const userId = await getUserFromRequest(req);
+      // Normalise tags: accept array or JSON string
+      let tagsArray: string[] = [];
+      if (Array.isArray(req.body.tags)) {
+        tagsArray = req.body.tags;
+      } else if (typeof req.body.tags === "string" && req.body.tags.startsWith("[")) {
+        try { tagsArray = JSON.parse(req.body.tags); } catch { tagsArray = []; }
+      }
       const wordData = {
         ...req.body,
         userId: userId ?? null,
-        tags: Array.isArray(req.body.tags) ? JSON.stringify(req.body.tags) : (req.body.tags || "[]"),
+        tags: JSON.stringify(tagsArray),
         dateAdded: req.body.dateAdded || new Date().toISOString().split("T")[0],
         createdAt: req.body.createdAt || new Date().toISOString(),
       };
       const word = await storage.createWord(wordData);
+      // Ensure every tag exists in the tags table
+      for (const tagName of tagsArray) {
+        const trimmed = tagName.trim();
+        if (trimmed) await storage.createTag({ name: trimmed });
+      }
       res.status(201).json(word);
     } catch (error: any) {
       console.error("Error creating word:", error);
