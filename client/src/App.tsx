@@ -1,41 +1,37 @@
+import { Switch, Route, Router } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import NotFound from "@/pages/not-found";
+import Landing from "@/pages/Landing";
+import Home from "@/pages/Home";
+import AddWord from "@/pages/AddWord";
+import CalendarView from "@/pages/CalendarView";
+import TagCloud from "@/pages/TagCloud";
+import WordDetail from "@/pages/WordDetail";
 
-
-function Router() {
+function AppRouter() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
+      <Route path="/" component={Landing} />
+      <Route path="/home" component={Home} />
+      <Route path="/add" component={AddWord} />
+      <Route path="/calendar" component={CalendarView} />
+      <Route path="/tags" component={TagCloud} />
+      <Route path="/word/:id" component={WordDetail} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
-
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        // switchable
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <TooltipProvider>
+      <Toaster />
+      <Router hook={useHashLocation}>
+        <AppRouter />
+      </Router>
+    </TooltipProvider>
   );
 }
 
