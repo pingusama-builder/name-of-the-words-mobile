@@ -33,3 +33,5 @@
 - [x] Add color column to words table (ALTER TABLE), assign random unique color on word creation
 - [x] Update calendar API to return per-word colors alongside wordIds
 - [x] Update Diamond component to use colors array from API (not derived from ID)
+- [x] Fix: switching to Calendar view causes blank screen and all nav buttons stop working — fixed by h-screen flex layout with shrink-0 nav + ViewErrorBoundary around CalendarView
+- [x] Verify bottom navigation end-to-end from Calendar view: Collection, Add Word, Tags, Import/Export must each switch views correctly

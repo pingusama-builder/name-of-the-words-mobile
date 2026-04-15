@@ -17,9 +17,11 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
   });
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const { data: calendarData = [] } = useQuery<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>({
+  const { data: calendarData = [], isError: calendarError } = useQuery<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>({
     queryKey: ["/api/calendar"],
     queryFn: () => apiRequest("GET", "/api/calendar").then(r => r.json()),
+    throwOnError: false,
+    retry: 1,
   });
 
   const { data: dateWords = [] } = useQuery<Word[]>({
@@ -29,6 +31,8 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
         ? apiRequest("GET", `/api/words/date/${selectedDate}`).then(r => r.json())
         : Promise.resolve([]),
     enabled: !!selectedDate,
+    throwOnError: false,
+    retry: 1,
   });
 
   const daysInMonth = new Date(currentMonth.year, currentMonth.month + 1, 0).getDate();

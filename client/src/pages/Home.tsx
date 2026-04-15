@@ -9,6 +9,7 @@ import TagCloud from "@/pages/TagCloud";
 import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
 import ExportImport from "@/components/ExportImport";
+import ViewErrorBoundary from "@/components/ViewErrorBoundary";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
@@ -72,7 +73,7 @@ export default function Home() {
     : "?";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3 border-b border-border/30 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-2">
@@ -204,7 +205,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Main content area */}
-      <main className="flex-1 overflow-y-auto px-4 sm:px-5 pb-28 sm:pb-24">
+      <main className="flex-1 overflow-y-auto px-4 sm:px-5 pb-24">
         <AnimatePresence mode="wait">
           {currentView === "collection" && (
             <motion.div
@@ -259,7 +260,9 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <CalendarView onSelectWord={setSelectedWord} />
+              <ViewErrorBoundary viewName="Calendar">
+                <CalendarView onSelectWord={setSelectedWord} />
+              </ViewErrorBoundary>
             </motion.div>
           )}
 
@@ -271,7 +274,9 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <TagCloud onSelectWord={setSelectedWord} />
+              <ViewErrorBoundary viewName="Tags">
+                <TagCloud onSelectWord={setSelectedWord} />
+              </ViewErrorBoundary>
             </motion.div>
           )}
 
@@ -311,7 +316,7 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-md border-t border-border/30">
+      <nav className="bg-background/90 backdrop-blur-md border-t border-border/30 shrink-0">
         <div className="flex items-center justify-around py-2 sm:py-3 max-w-full sm:max-w-md mx-auto px-2 sm:px-0">
           <button
             onClick={() => setCurrentView("collection")}
