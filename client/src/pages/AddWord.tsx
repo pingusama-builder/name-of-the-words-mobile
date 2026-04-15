@@ -27,6 +27,7 @@ export default function AddWord({ onComplete }: AddWordProps) {
 
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
+    queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
   });
 
   const filteredSuggestions = tagInput.length > 0
