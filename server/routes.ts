@@ -86,5 +86,96 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // Export words as JSON
+  app.get("/api/export/json", async (_req, res) => {
+    const words = await storage.getAllWords();
+    const tags = await storage.getAllTags();
+    const exportData = {
+      version: "1.0",
+      exportDate: new Date().toISOString(),
+      words,
+      tags,
+    };
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="words-export-${new Date().toISOString().split('T')[0]}.json"`);
+    res.json(exportData);
+  });
+
+  // Export words as CSV (Excel compatible)
+  app.get("/api/export/excel", async (_req, res) => {
+    const words = await storage.getAllWords();
+    const headers = ["Word", "Meaning", "Context", "Origin Language", "Tags", "Date Added", "Essence Rating", "Beauty Rating", "Subtlety Rating", "Paired Word", "Paired Meaning"];
+    const rows = words.map(w => [
+      w.word,
+      w.meaning || "",
+      w.context || "",
+      w.originLanguage,
+      w.tags ? JSON.parse(w.tags).join("; ") : "",
+      w.dateAdded,
+      w.ratingEssence || "",
+      w.ratingBeauty || "",
+      w.ratingSubtlety || "",
+      w.pairedWord || "",
+      w.pairedMeaning || "",
+    ]);
+    
+    const csv = [
+      headers.map(h => `"${h}"`).join(","),
+      ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")),
+    ].join("\n");
+    
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="words-export-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csv);
+  });
+
+  // Import words from JSON
+  app.post("/api/import/json", async (req, res) => {
+    try {
+      const { words: importedWords, tags: importedTags } = req.body;
+      
+      if (!Array.isArray(importedWords)) {
+        return res.status(400).json({ message: "Invalid format: words must be an array" });
+      }
+      
+      let createdCount = 0;
+      for (const word of importedWords) {
+        try {
+          await storage.createWord({
+            word: word.word,
+            originLanguage: word.originLanguage || "other",
+            meaning: word.meaning,
+            context: word.context,
+            ratingEssence: word.ratingEssence,
+            ratingBeauty: word.ratingBeauty,
+            ratingSubtlety: word.ratingSubtlety,
+            tags: word.tags ? JSON.stringify(word.tags) : "[]",
+            pairedWord: word.pairedWord,
+            pairedMeaning: word.pairedMeaning,
+            dateAdded: word.dateAdded || new Date().toISOString().split('T')[0],
+            createdAt: word.createdAt || new Date().toISOString(),
+          });
+          createdCount++;
+        } catch (e) {
+          console.error("Error importing word:", e);
+        }
+      }
+      
+      if (Array.isArray(importedTags)) {
+        for (const tag of importedTags) {
+          try {
+            await storage.createTag({ name: tag.name });
+          } catch (e) {
+            // Tag might already exist
+          }
+        }
+      }
+      
+      res.json({ message: `Successfully imported ${createdCount} words`, count: createdCount });
+    } catch (e: any) {
+      res.status(400).json({ message: e.message });
+    }
+  });
+
   return httpServer;
 }

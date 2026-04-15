@@ -8,6 +8,7 @@ import CalendarView from "@/pages/CalendarView";
 import TagCloud from "@/pages/TagCloud";
 import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
+import ExportImport from "@/components/ExportImport";
 
 type View = "collection" | "calendar" | "tags" | "add";
 
@@ -142,6 +143,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 mt-2">
+                  <ExportImport onImportSuccess={() => window.location.reload()} />
                   <AnimatePresence mode="popLayout">
                     {displayedWords.map((word, i) => (
                       <WordCard
