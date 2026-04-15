@@ -22,3 +22,8 @@
 - [x] Fix tag cloud: TagCloud component reads tags from word.tags JSON field (already correct, root cause was server-side)
 - [x] Add tag autocomplete in AddWord: show existing tags as suggestions when typing
 - [x] Remove all occurrences of "Mobile First" / "Mobile first" from the entire project (no user-visible text)
+- [x] Add PUT /api/words/:id endpoint to routes.ts with auth scoping (already implemented)
+- [x] Add updateWord helper to storage.ts (already implemented)
+- [x] Build EditWord slide-up sheet component pre-filled with word data (all fields: word, language, meaning, context, paired word, ratings, tags)
+- [x] Wire edit button into WordDetail view (tap pencil icon → opens EditWord sheet)
+- [x] Write vitest tests for PUT /api/words/:id endpoint
