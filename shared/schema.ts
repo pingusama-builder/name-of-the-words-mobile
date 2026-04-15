@@ -18,6 +18,9 @@ export const words = mysqlTable("words", {
   createdAt: varchar("created_at", { length: 64 }).notNull(), // ISO datetime
   userId: varchar("user_id", { length: 128 }), // Manus OAuth openId
   color: varchar("color", { length: 16 }), // unique hex color per word e.g. "#a3c4f5"
+  source: varchar("source", { length: 512 }), // book title, article, show, etc.
+  location: varchar("location", { length: 255 }), // free text: "p. 142", "ch. 3", "第三章", etc.
+  locationOrder: int("location_order"), // auto-extracted integer from location for sorting
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({

@@ -42,12 +42,32 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
   const [pairedMeaning, setPairedMeaning] = useState(word.pairedMeaning || "");
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Source / location fields — pre-filled from existing word
+  const [source, setSource] = useState(word.source || "");
+  const [location, setLocation] = useState(word.location || "");
+  const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
+  const sourceInputRef = useRef<HTMLInputElement>(null);
+
   const tagInputRef = useRef<HTMLInputElement>(null);
 
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
     queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
   });
+
+  // Fetch existing words to derive source autocomplete list
+  const { data: allWords = [] } = useQuery<Word[]>({
+    queryKey: ["/api/words"],
+    queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
+  });
+
+  const allSources = Array.from(
+    new Set(allWords.map((w) => w.source).filter((s): s is string => !!s && s.trim().length > 0))
+  ).sort();
+
+  const filteredSourceSuggestions = source.trim().length > 0
+    ? allSources.filter(s => s.toLowerCase().includes(source.toLowerCase()))
+    : allSources.slice(0, 6);
 
   const filteredSuggestions = tagInput.trim().length > 0
     ? allTags.filter(
@@ -70,6 +90,9 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
 
   const mutation = useMutation({
     mutationFn: async (finalTags: string[]) => {
+      // Auto-extract first integer from location for sorting
+      const locationOrderMatch = location.match(/\d+/);
+      const locationOrder = locationOrderMatch ? parseInt(locationOrderMatch[0], 10) : null;
       const res = await apiRequest("PUT", `/api/words/${word.id}`, {
         word: wordText,
         originLanguage,
@@ -81,6 +104,9 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
         tags: finalTags,
         pairedWord: pairedWord || null,
         pairedMeaning: pairedMeaning || null,
+        source: source.trim() || null,
+        location: location.trim() || null,
+        locationOrder,
       });
       return res.json() as Promise<Word>;
     },
@@ -252,6 +278,59 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                   className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
                     placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors resize-none"
                   data-testid="edit-input-context"
+                />
+              </div>
+
+              {/* Source & Location */}
+              <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
+                <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Source</p>
+                <div className="relative mb-2">
+                  <input
+                    ref={sourceInputRef}
+                    type="text"
+                    placeholder="Book, article, show..."
+                    value={source}
+                    onChange={(e) => { setSource(e.target.value); setShowSourceSuggestions(true); }}
+                    onFocus={() => setShowSourceSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSourceSuggestions(false), 150)}
+                    className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
+                      placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                    data-testid="edit-input-source"
+                  />
+                  <AnimatePresence>
+                    {showSourceSuggestions && filteredSourceSuggestions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg overflow-hidden z-20 shadow-lg"
+                      >
+                        {filteredSourceSuggestions.slice(0, 6).map((s) => (
+                          <button
+                            key={s}
+                            onMouseDown={(e) => { e.preventDefault(); setSource(s); setShowSourceSuggestions(false); }}
+                            className="w-full text-left px-3 py-2 text-sm text-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors flex items-center gap-2"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0 opacity-40">
+                              <rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="1" />
+                              <path d="M3 4h6M3 6h6M3 8h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                            </svg>
+                            {s}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Location (p. 142, ch. 3, 第三章...)"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
+                    placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                  data-testid="edit-input-location"
                 />
               </div>
 

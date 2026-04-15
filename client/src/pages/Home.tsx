@@ -8,12 +8,13 @@ import CalendarView from "@/pages/CalendarView";
 import TagCloud from "@/pages/TagCloud";
 import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
+import SourcesView from "@/pages/SourcesView";
 import ExportImport from "@/components/ExportImport";
 import ViewErrorBoundary from "@/components/ViewErrorBoundary";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 
-type View = "collection" | "calendar" | "tags" | "add" | "transfer";
+type View = "collection" | "calendar" | "tags" | "add" | "sources";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>("collection");
@@ -21,6 +22,7 @@ export default function Home() {
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showTransferSheet, setShowTransferSheet] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -76,12 +78,16 @@ export default function Home() {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3 border-b border-border/30 bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words">
+        <div className="flex items-center gap-2.5">
+          <svg width="22" height="22" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words" className="shrink-0">
+            <path d="M12 48 C12 24, 20 16, 32 12 C44 16, 52 24, 52 48" stroke="hsl(188 35% 47%)" strokeWidth="1.5" fill="none" opacity="0.6" />
+            <path d="M16 46 C16 28, 22 20, 32 16 C42 20, 48 28, 48 46" stroke="hsl(188 35% 57%)" strokeWidth="1.2" fill="none" opacity="0.4" />
             <rect x="28" y="28" width="8" height="8" fill="hsl(188 35% 47%)" opacity="0.7" rx="1" transform="rotate(45 32 32)" />
-            <path d="M12 48 C12 24, 20 16, 32 12 C44 16, 52 24, 52 48" stroke="hsl(188 35% 47%)" strokeWidth="1.5" fill="none" opacity="0.5" />
           </svg>
-          <span className="font-serif text-sm text-foreground/80 tracking-wide">言之名</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-serif text-sm text-foreground/90 tracking-wide">Name of the Words</span>
+            <span className="text-[10px] text-muted-foreground/60 tracking-[0.18em] uppercase mt-0.5">言之名</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -141,6 +147,24 @@ export default function Home() {
                         <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
                       )}
                     </div>
+
+                    {/* Import/Export */}
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        setShowTransferSheet(true);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors flex items-center gap-2 border-b border-border/20"
+                      data-testid="menu-transfer"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 4v12M14 4v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                        <path d="M6 4l-3 3M6 4l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 16l-3-3M14 16l3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      Import / Export
+                    </button>
+
                     {/* Logout */}
                     <button
                       onClick={async () => {
@@ -292,17 +316,17 @@ export default function Home() {
             </motion.div>
           )}
 
-          {currentView === "transfer" && (
+          {currentView === "sources" && (
             <motion.div
-              key="transfer"
+              key="sources"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="pt-4">
-                <ExportImport onImportSuccess={() => { setCurrentView("collection"); window.location.reload(); }} />
-              </div>
+              <ViewErrorBoundary viewName="Sources">
+                <SourcesView />
+              </ViewErrorBoundary>
             </motion.div>
           )}
         </AnimatePresence>
@@ -312,6 +336,42 @@ export default function Home() {
       <AnimatePresence>
         {selectedWord && (
           <WordDetail word={selectedWord} onClose={() => setSelectedWord(null)} />
+        )}
+      </AnimatePresence>
+
+      {/* Transfer sheet overlay */}
+      <AnimatePresence>
+        {showTransferSheet && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-end justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowTransferSheet(false)}
+            />
+            <motion.div
+              className="relative w-full max-w-md bg-card border-t border-border/30 rounded-t-2xl
+                max-h-[85vh] overflow-y-auto pb-10"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            >
+              <div className="flex justify-center pt-3 pb-2">
+                <div className="w-8 h-1 rounded-full bg-border/50" />
+              </div>
+              <div className="px-5 pt-2">
+                <ExportImport onImportSuccess={() => {
+                  setShowTransferSheet(false);
+                  window.location.reload();
+                }} />
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -380,17 +440,17 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setCurrentView("transfer")}
+            onClick={() => setCurrentView("sources")}
             className={`flex flex-col items-center gap-1 transition-colors ${
-              currentView === "transfer" ? "text-primary" : "text-muted-foreground"
+              currentView === "sources" ? "text-primary" : "text-muted-foreground"
             }`}
-            data-testid="nav-transfer"
-            aria-label="Import/Export"
+            data-testid="nav-sources"
+            aria-label="Sources"
           >
+            {/* Book / sources icon */}
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M6 4v12M14 4v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-              <path d="M6 4l-3 3M6 4l3 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M14 16l-3-3M14 16l3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M4 3h5.5c1 0 1.5.5 1.5 1.5v11c0-1-0.5-1.5-1.5-1.5H4V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+              <path d="M16 3h-5.5c-1 0-1.5.5-1.5 1.5v11c0-1 0.5-1.5 1.5-1.5H16V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
             </svg>
           </button>
         </div>

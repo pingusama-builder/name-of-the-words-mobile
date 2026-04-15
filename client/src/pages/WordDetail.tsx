@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import CircularDial from "@/components/CircularDial";
 import { apiRequest } from "@/lib/queryClient";
 import EditWord from "@/pages/EditWord";
+import SourceDeck from "@/components/SourceDeck";
 
 interface WordDetailProps {
   word: Word;
@@ -25,6 +26,7 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [currentWord, setCurrentWord] = useState<Word>(word);
+  const [showSourceDeck, setShowSourceDeck] = useState(false);
 
   const tags: string[] = (() => {
     try { return JSON.parse(currentWord.tags || "[]"); }
@@ -171,6 +173,33 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
               <CircularDial value={currentWord.ratingSubtlety || 0} onChange={() => {}} label="Subtlety" color="#d4a34f" size={72} />
             </div>
 
+            {/* Source & Location */}
+            {(currentWord.source || currentWord.location) && (
+              <div className="mb-5">
+                <p className="text-xs text-muted-foreground/50 mb-1.5 uppercase tracking-wider">Source</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {currentWord.source && (
+                    <button
+                      onClick={() => setShowSourceDeck(true)}
+                      className="inline-flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary
+                        bg-primary/8 hover:bg-primary/15 border border-primary/20 hover:border-primary/35
+                        px-2.5 py-1 rounded-full transition-all duration-200"
+                      data-testid="source-link"
+                    >
+                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                        <rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="1" />
+                        <path d="M3 4h6M3 6h6M3 8h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                      </svg>
+                      {currentWord.source}
+                    </button>
+                  )}
+                  {currentWord.location && (
+                    <span className="text-xs text-muted-foreground/50">{currentWord.location}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tags */}
             {tags.length > 0 && (
               <div className="mb-6">
@@ -239,6 +268,16 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
               setCurrentWord(updated);
               setShowEdit(false);
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Source deck overlay */}
+      <AnimatePresence>
+        {showSourceDeck && currentWord.source && (
+          <SourceDeck
+            source={currentWord.source}
+            onClose={() => setShowSourceDeck(false)}
           />
         )}
       </AnimatePresence>

@@ -39,3 +39,17 @@
 - [x] Fix user isolation: authenticated users must only see their own words (not NULL-userId legacy words); new users get a clean slate
 - [x] Scope getWordById by userId to prevent cross-user access by ID (PUT and DELETE now check ownership)
 - [x] Update import flow: uses dateAdded from imported file (server-side fallback to UTC is acceptable for imports)
+- [x] Update header logo: show "Name of the Words" in font-serif + "言之名" below/beside it, matching landing page typography
+- [x] Add `page` (location/page number) and `source` (book title / source name) fields to words schema and DB
+- [x] Update AddWord and EditWord forms to include page and source fields
+- [x] Build source swipe deck: a view that groups words by source and lets users swipe through cards from the same source
+- [x] Update header logo: bilingual lockup "Name of the Words" (font-serif) + "言之名" (muted tracked), matching landing page style
+- [x] Add source (text), location (free text display), locationOrder (int, auto-extracted) to words schema and DB
+- [x] Update AddWord form: add source and location fields
+- [x] Update EditWord form: add source and location fields
+- [x] Build SourcesList view: list all sources with word count badge, tap to open swipe deck
+- [x] Build SwipeDeck view: full-screen card swiper for words from one source, sorted by locationOrder
+- [x] Add Sources tab to bottom nav (replace Import/Export slot)
+- [x] Move Import/Export into user avatar dropdown menu
+- [x] Update export format to include source, location, locationOrder fields
+- [x] Update import to parse and store source, location, locationOrder fields (no backward compat needed)

@@ -172,12 +172,12 @@ export async function registerRoutes(
     try {
       const userId = await getUserFromRequest(req);
       const allWords = await storage.getAllWords(userId ?? undefined);
-      const headers = ["Word", "Language", "Meaning", "Context", "Essence", "Beauty", "Subtlety", "Tags", "Paired Word", "Date Added"];
+      const headers = ["Word", "Language", "Meaning", "Context", "Essence", "Beauty", "Subtlety", "Tags", "Paired Word", "Date Added", "Source", "Location", "Location Order"];
       const rows = allWords.map(w => [
         w.word, w.originLanguage, w.meaning || "", w.context || "",
         w.ratingEssence || 0, w.ratingBeauty || 0, w.ratingSubtlety || 0,
         (() => { try { return JSON.parse(w.tags || "[]").join(", "); } catch { return ""; } })(),
-        w.pairedWord || "", w.dateAdded,
+        w.pairedWord || "", w.dateAdded, w.source || "", w.location || "", w.locationOrder ?? "",
       ]);
       const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
       res.setHeader("Content-Type", "text/csv");
@@ -195,6 +195,9 @@ export async function registerRoutes(
       if (!Array.isArray(importWords)) return res.status(400).json({ message: "Invalid format" });
       let count = 0;
       for (const w of importWords) {
+        // Auto-extract first integer from location for sorting
+        const locationOrderMatch = (w.location || "").match(/\d+/);
+        const locationOrder = locationOrderMatch ? parseInt(locationOrderMatch[0], 10) : null;
         await storage.createWord({
           word: w.word, originLanguage: w.originLanguage || w.origin_language || "english",
           meaning: w.meaning, context: w.context,
@@ -205,6 +208,10 @@ export async function registerRoutes(
           dateAdded: w.dateAdded || new Date().toISOString().split("T")[0],
           createdAt: w.createdAt || new Date().toISOString(),
           userId: userId ?? null,
+          source: w.source || null,
+          location: w.location || null,
+          locationOrder,
+          color: w.color || null,
         });
         count++;
       }
