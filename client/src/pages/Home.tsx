@@ -9,6 +9,8 @@ import TagCloud from "@/pages/TagCloud";
 import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
 import ExportImport from "@/components/ExportImport";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 type View = "collection" | "calendar" | "tags" | "add" | "transfer";
 
@@ -17,6 +19,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const { user, isAuthenticated, logout } = useAuth();
 
   const { data: words = [], isLoading } = useQuery<Word[]>({
     queryKey: ["/api/words"],
@@ -41,10 +46,13 @@ export default function Home() {
     }
   }, []);
 
-  // Refetch words when import succeeds
-  const refetchWords = () => {
-    window.location.reload();
-  };
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const handler = () => setShowUserMenu(false);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [showUserMenu]);
 
   const handleRandomPick = async () => {
     try {
@@ -57,6 +65,11 @@ export default function Home() {
   };
 
   const displayedWords = isSearchOpen && searchQuery.length > 0 ? searchResults : words;
+
+  // Derive user initials for avatar
+  const userInitials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "?";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -98,6 +111,70 @@ export default function Home() {
               <circle cx="10.5" cy="10.5" r="1" fill="currentColor" />
             </svg>
           </button>
+
+          {/* Auth button — login or user avatar */}
+          {isAuthenticated ? (
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-primary/20 border border-primary/30 text-primary text-xs font-medium hover:bg-primary/30 transition-colors"
+                data-testid="user-avatar"
+                aria-label="User menu"
+              >
+                {userInitials}
+              </button>
+
+              <AnimatePresence>
+                {showUserMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-10 w-52 bg-card border border-border/50 rounded-xl shadow-lg overflow-hidden z-50"
+                  >
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-border/30">
+                      <p className="text-sm font-medium text-foreground truncate">{user?.name || "Anonymous"}</p>
+                      {user?.email && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
+                      )}
+                    </div>
+                    {/* Logout */}
+                    <button
+                      onClick={async () => {
+                        setShowUserMenu(false);
+                        await logout();
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors flex items-center gap-2"
+                      data-testid="logout-button"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                        <path d="M11 11l3-3-3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 8H6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                      </svg>
+                      Sign out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <a
+              href={getLoginUrl()}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/40 text-primary text-xs hover:bg-primary/10 transition-colors"
+              data-testid="login-button"
+              aria-label="Sign in"
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M10 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <path d="M7 11l3-3-3-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M10 8H2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+              Sign in
+            </a>
+          )}
         </div>
       </header>
 
@@ -158,7 +235,6 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 mt-2">
-    
                   <AnimatePresence mode="popLayout">
                     {displayedWords.map((word, i) => (
                       <WordCard

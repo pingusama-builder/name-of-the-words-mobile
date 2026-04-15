@@ -1,26 +1,39 @@
 import { type Word, type InsertWord, words, type Tag, type InsertTag, tags } from "@shared/schema";
-import { eq, like, desc, or } from "drizzle-orm";
+import { eq, like, desc, or, and, isNull } from "drizzle-orm";
 import { getDb } from "./db";
 
+// Helper: build a userId filter that includes both the user's words AND legacy words (userId IS NULL)
+function userScope(userId?: string) {
+  if (!userId) return undefined;
+  // Show the user's own words + anonymous legacy words
+  return or(eq(words.userId, userId), isNull(words.userId));
+}
+
 export interface IStorage {
-  getAllWords(): Promise<Word[]>;
+  getAllWords(userId?: string): Promise<Word[]>;
   getWordById(id: number): Promise<Word | undefined>;
-  getWordsByDate(date: string): Promise<Word[]>;
-  searchWordsByTag(tag: string): Promise<Word[]>;
-  searchWords(query: string): Promise<Word[]>;
+  getWordsByDate(date: string, userId?: string): Promise<Word[]>;
+  searchWordsByTag(tag: string, userId?: string): Promise<Word[]>;
+  searchWords(query: string, userId?: string): Promise<Word[]>;
   createWord(word: InsertWord): Promise<Word>;
+  updateWord(id: number, updates: Partial<InsertWord>): Promise<Word>;
   deleteWord(id: number): Promise<void>;
-  getRandomWord(): Promise<Word | undefined>;
+  getRandomWord(userId?: string): Promise<Word | undefined>;
   getAllTags(): Promise<Tag[]>;
   createTag(tag: InsertTag): Promise<Tag>;
-  getCalendarDates(): Promise<{ date: string; count: number }[]>;
+  getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[] }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getAllWords(): Promise<Word[]> {
+  async getAllWords(userId?: string): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
-    return db.select().from(words).orderBy(desc(words.createdAt));
+    const scope = userScope(userId);
+    const query = db.select().from(words);
+    const result = scope
+      ? await query.where(scope).orderBy(desc(words.createdAt))
+      : await query.orderBy(desc(words.createdAt));
+    return result;
   }
 
   async getWordById(id: number): Promise<Word | undefined> {
@@ -30,16 +43,22 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getWordsByDate(date: string): Promise<Word[]> {
+  async getWordsByDate(date: string, userId?: string): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
-    return db.select().from(words).where(eq(words.dateAdded, date));
+    const scope = userScope(userId);
+    const dateFilter = eq(words.dateAdded, date);
+    const condition = scope ? and(dateFilter, scope) : dateFilter;
+    return db.select().from(words).where(condition);
   }
 
-  async searchWordsByTag(tag: string): Promise<Word[]> {
+  async searchWordsByTag(tag: string, userId?: string): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
-    const all = await db.select().from(words);
+    const scope = userScope(userId);
+    const all = scope
+      ? await db.select().from(words).where(scope)
+      : await db.select().from(words);
     return all.filter((w: Word) => {
       try {
         const t = JSON.parse(w.tags || "[]");
@@ -48,13 +67,14 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async searchWords(query: string): Promise<Word[]> {
+  async searchWords(query: string, userId?: string): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const q = `%${query}%`;
-    return db.select().from(words).where(
-      or(like(words.word, q), like(words.meaning, q), like(words.context, q))
-    );
+    const textFilter = or(like(words.word, q), like(words.meaning, q), like(words.context, q));
+    const scope = userScope(userId);
+    const condition = scope ? and(textFilter, scope) : textFilter;
+    return db.select().from(words).where(condition);
   }
 
   async createWord(word: InsertWord): Promise<Word> {
@@ -66,16 +86,28 @@ export class DatabaseStorage implements IStorage {
     return created[0] as Word;
   }
 
+  async updateWord(id: number, updates: Partial<InsertWord>): Promise<Word> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+    await db.update(words).set(updates).where(eq(words.id, id));
+    const updated = await db.select().from(words).where(eq(words.id, id)).limit(1);
+    if (!updated[0]) throw new Error("Word not found after update");
+    return updated[0] as Word;
+  }
+
   async deleteWord(id: number): Promise<void> {
     const db = await getDb();
     if (!db) return;
     await db.delete(words).where(eq(words.id, id));
   }
 
-  async getRandomWord(): Promise<Word | undefined> {
+  async getRandomWord(userId?: string): Promise<Word | undefined> {
     const db = await getDb();
     if (!db) return undefined;
-    const all = await db.select().from(words);
+    const scope = userScope(userId);
+    const all = scope
+      ? await db.select().from(words).where(scope)
+      : await db.select().from(words);
     if (all.length === 0) return undefined;
     return all[Math.floor(Math.random() * all.length)];
   }
@@ -97,15 +129,20 @@ export class DatabaseStorage implements IStorage {
     return created[0] as Tag;
   }
 
-  async getCalendarDates(): Promise<{ date: string; count: number }[]> {
+  async getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[] }[]> {
     const db = await getDb();
     if (!db) return [];
-    const all = await db.select().from(words);
-    const map = new Map<string, number>();
+    const scope = userScope(userId);
+    const all = scope
+      ? await db.select().from(words).where(scope)
+      : await db.select().from(words);
+    const map = new Map<string, number[]>();
     for (const w of all) {
-      map.set(w.dateAdded, (map.get(w.dateAdded) || 0) + 1);
+      const existing = map.get(w.dateAdded) || [];
+      existing.push(w.id);
+      map.set(w.dateAdded, existing);
     }
-    return Array.from(map.entries()).map(([date, count]) => ({ date, count }));
+    return Array.from(map.entries()).map(([date, wordIds]) => ({ date, count: wordIds.length, wordIds }));
   }
 }
 

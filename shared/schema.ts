@@ -16,6 +16,7 @@ export const words = mysqlTable("words", {
   pairedMeaning: text("paired_meaning"),
   dateAdded: varchar("date_added", { length: 32 }).notNull(), // ISO date string YYYY-MM-DD
   createdAt: varchar("created_at", { length: 64 }).notNull(), // ISO datetime
+  userId: varchar("user_id", { length: 128 }), // Manus OAuth openId
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({
