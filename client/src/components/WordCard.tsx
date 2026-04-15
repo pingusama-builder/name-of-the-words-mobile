@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { Word } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +62,7 @@ function MiniDial({ value, color, label }: { value: number; color: string; label
   );
 }
 
-export default function WordCard({ word, onClick, animateEntry = false, index = 0 }: WordCardProps) {
+const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ word, onClick, animateEntry = false, index = 0 }, _ref) {
   const [isPlucked, setIsPlucked] = useState(false);
   const tags: string[] = (() => {
     try { return JSON.parse(word.tags || "[]"); }
@@ -102,6 +102,7 @@ export default function WordCard({ word, onClick, animateEntry = false, index = 
       style={isPlucked ? { boxShadow: "0 0 24px rgba(79,184,163,0.15)" } : undefined}
       onClick={handleClick}
       data-testid={`word-card-${word.id}`}
+      ref={_ref as React.Ref<HTMLDivElement>}
     >
       {/* Top: word + language badge */}
       <div className="flex items-start justify-between gap-3 mb-2">
@@ -156,4 +157,6 @@ export default function WordCard({ word, onClick, animateEntry = false, index = 
       )}
     </motion.div>
   );
-}
+});
+
+export default WordCard;
