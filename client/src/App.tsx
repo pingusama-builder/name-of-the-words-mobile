@@ -13,6 +13,8 @@ function AppRouter() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/home" component={Home} />
+      {/* /add, /calendar, /tags are managed as views inside Home */}
+      <Route path="/add">{() => { window.location.hash = "/home?view=add"; return null; }}</Route>
       <Route component={NotFound} />
     </Switch>
   );

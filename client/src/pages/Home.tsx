@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Word } from "@shared/schema";
@@ -31,6 +31,15 @@ export default function Home() {
         : Promise.resolve([]),
     enabled: searchQuery.length > 0,
   });
+
+  // Read sessionStorage flag from Landing page + button
+  useEffect(() => {
+    const openView = sessionStorage.getItem('openView');
+    if (openView === 'add') {
+      sessionStorage.removeItem('openView');
+      setCurrentView('add');
+    }
+  }, []);
 
   // Refetch words when import succeeds
   const refetchWords = () => {

@@ -107,7 +107,7 @@ export default function Landing() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.7 }}
-        onClick={() => navigate("/add")}
+        onClick={() => { sessionStorage.setItem('openView', 'add'); navigate("/home"); }}
         className="group relative w-12 h-12 rounded-full border border-primary/30 flex items-center justify-center
           transition-all duration-500 hover:border-primary/60 hover:bg-primary/5 mb-4"
         data-testid="add-button"
