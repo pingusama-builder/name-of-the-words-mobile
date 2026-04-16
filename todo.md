@@ -91,3 +91,10 @@
 
 ## Desktop Responsive Layout
 - [x] Add CSS desktop font scaling (112.5% at 1024px+, 118.75% at 1440px+) — equivalent to ~115% browser zoom, no layout changes needed
+
+## Tappable Filters
+- [x] Add activeLanguage and activeTag filter state to Home.tsx collection view
+- [x] Render dismissible filter chip bar above word list when a filter is active (shows active filter + × to clear)
+- [x] Apply language/tag filter to displayedWords in collection view
+- [x] Update WordCard: make language badge tappable (calls onLanguageClick), make tag chips tappable (calls onTagClick)
+- [x] Source chips on word cards already open SourceDeck — confirmed still working

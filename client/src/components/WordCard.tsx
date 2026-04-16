@@ -8,6 +8,8 @@ interface WordCardProps {
   onClick?: () => void;
   animateEntry?: boolean;
   index?: number;
+  onLanguageClick?: (language: string) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 const LANG_LABELS: Record<string, string> = {
@@ -62,7 +64,7 @@ function MiniDial({ value, color, label }: { value: number; color: string; label
   );
 }
 
-const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ word, onClick, animateEntry = false, index = 0 }, _ref) {
+const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ word, onClick, animateEntry = false, index = 0, onLanguageClick, onTagClick }, _ref) {
   const [isPlucked, setIsPlucked] = useState(false);
   const tags: string[] = (() => {
     try { return JSON.parse(word.tags || "[]"); }
@@ -115,9 +117,13 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
               Work
             </span>
           )}
-          <span className="text-xs px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-medium">
+          <button
+            className="text-xs px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-medium hover:bg-primary/20 hover:text-primary transition-colors"
+            onClick={(e) => { e.stopPropagation(); onLanguageClick?.(word.originLanguage); }}
+            title={`Filter by ${word.originLanguage}`}
+          >
             {LANG_LABELS[word.originLanguage] || word.originLanguage}
-          </span>
+          </button>
         </div>
       </div>
 
@@ -151,9 +157,14 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs bg-muted/40 text-muted-foreground border-none px-2 py-0">
+            <button
+              key={tag}
+              onClick={(e) => { e.stopPropagation(); onTagClick?.(tag); }}
+              className="text-xs px-2 py-0.5 rounded-full bg-muted/40 text-muted-foreground hover:bg-primary/20 hover:text-primary transition-colors"
+              title={`Filter by ${tag}`}
+            >
               {tag}
-            </Badge>
+            </button>
           ))}
         </div>
       )}

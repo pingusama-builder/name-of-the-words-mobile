@@ -179,7 +179,20 @@ export default function Home() {
     });
   };
 
-  const displayedWords = isSearchOpen && searchQuery.length > 0 ? searchResults : words;
+  const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const baseWords = isSearchOpen && searchQuery.length > 0 ? searchResults : words;
+  const displayedWords = baseWords.filter(w => {
+    if (activeLanguage && w.originLanguage !== activeLanguage) return false;
+    if (activeTag) {
+      try { if (!JSON.parse(w.tags || '[]').includes(activeTag)) return false; }
+      catch { return false; }
+    }
+    return true;
+  });
+
+  const clearFilters = () => { setActiveLanguage(null); setActiveTag(null); };
 
   const userInitials = user?.name
     ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -423,6 +436,34 @@ export default function Home() {
         )}
       </AnimatePresence>
 
+      {/* Active filter chip bar */}
+      {(activeLanguage || activeTag) && !selectMode && (
+        <div className="flex items-center gap-2 px-5 py-2 border-b border-border/20">
+          <span className="text-xs text-muted-foreground">Viewing:</span>
+          {activeLanguage && (
+            <button
+              onClick={() => setActiveLanguage(null)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs hover:bg-primary/25 transition-colors"
+            >
+              {activeLanguage === 'cantonese' ? '粵' : activeLanguage === 'mandarin' ? '中' : activeLanguage === 'english' ? 'EN' : activeLanguage}
+              <span className="opacity-60 ml-0.5">×</span>
+            </button>
+          )}
+          {activeTag && (
+            <button
+              onClick={() => setActiveTag(null)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs hover:bg-primary/25 transition-colors"
+            >
+              {activeTag}
+              <span className="opacity-60 ml-0.5">×</span>
+            </button>
+          )}
+          {activeLanguage && activeTag && (
+            <button onClick={clearFilters} className="text-xs text-muted-foreground/60 hover:text-muted-foreground ml-1">clear all</button>
+          )}
+        </div>
+      )}
+
       {/* Search bar */}
       <AnimatePresence>
         {isSearchOpen && !selectMode && (
@@ -511,6 +552,8 @@ export default function Home() {
                           onClick={() => selectMode ? toggleSelect(word.id) : setSelectedWord(word)}
                           animateEntry={!selectMode}
                           index={i}
+                          onLanguageClick={selectMode ? undefined : (lang) => setActiveLanguage(lang)}
+                          onTagClick={selectMode ? undefined : (tag) => setActiveTag(tag)}
                         />
                       </div>
                     ))}
