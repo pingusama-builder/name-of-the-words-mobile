@@ -270,3 +270,18 @@
     inset: -1px;
   }
 }
+
+/* Desktop font scaling — the app is mobile-first; on large screens we scale the root
+   font size so everything reads comfortably without the user needing to zoom manually.
+   This is equivalent to the browser being at ~115% zoom on a 1440px+ display. */
+@media (min-width: 1024px) {
+  html {
+    font-size: 112.5%; /* 18px base instead of 16px */
+  }
+}
+
+@media (min-width: 1440px) {
+  html {
+    font-size: 118.75%; /* 19px base — comfortable on large/high-DPI monitors */
+  }
+}

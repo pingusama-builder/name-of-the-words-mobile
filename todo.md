@@ -88,3 +88,6 @@
 - [x] Boost section label (SOURCE, PERFECT MATCH PAIR, etc.) contrast in AddWord/EditWord
 - [x] Ensure input field typed text is clearly visible against dark background
 - [x] Change context/quote preview text color in WordCard to #7bbfbb (teal tint, legible on dark bg)
+
+## Desktop Responsive Layout
+- [x] Add CSS desktop font scaling (112.5% at 1024px+, 118.75% at 1440px+) — equivalent to ~115% browser zoom, no layout changes needed
