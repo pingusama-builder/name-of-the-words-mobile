@@ -64,6 +64,21 @@
 - [x] Wire batch share action (opens share sheet → creates link → shows copyable URL)
 - [x] Build public SharedDeckViewer page at /share/:token (no auth required, full swipe deck)
 - [x] Add /share/:token route to App.tsx (non-hash, accessible without login)
-- [ ] Write user-facing product introduction document (ABOUT.md)
+- [x] Write user-facing product introduction document (ABOUT.md)
 - [x] Add GET /api/stats endpoint returning global user count (Seekers) and total word count (Words Named)
 - [x] Display Seekers and Words Named on Landing page (subtle, below the title)
+
+## Work Mode
+- [x] Add isWork column (boolean, default false) to words table via DB migration
+- [x] Add user_preferences table (userId, workMode boolean) via DB migration
+- [x] Update shared/schema.ts to include isWork field on words
+- [x] Add server endpoints: GET/POST /api/preferences (get/set workMode per user)
+- [x] Update storage getAllWords, getWordsByDate, searchWords, getCalendarDates to accept isWork filter
+- [x] Update all GET /api/words and related routes to pass isWork filter from query param
+- [x] Build WorkModeContext (React context) to hold current mode state, synced with server preference
+- [x] Add Work Mode toggle switch to user avatar dropdown in Home.tsx header
+- [x] Apply mode filter to collection view, calendar, tag cloud, sources view (client-side via context)
+- [x] Update AddWord form: tag new words with current mode (isWork), hide ratings in Work mode
+- [x] Update EditWord form: show/hide ratings based on word's isWork flag, allow toggling isWork on existing words
+- [x] Update export to include isWork column; import parses isWork field
+- [x] Visual distinction in Work mode: muted header badge, slightly different accent, no rating bars in cards

@@ -7,6 +7,7 @@ import WordCard from "@/components/WordCard";
 
 interface TagCloudProps {
   onSelectWord: (word: Word) => void;
+  isWorkMode?: boolean;
 }
 
 // Color palette for tags, cycling through jewel tones
@@ -20,11 +21,13 @@ const TAG_COLORS = [
   "hsl(20 55% 55%)",  // amber
 ];
 
-export default function TagCloud({ onSelectWord }: TagCloudProps) {
+export default function TagCloud({ onSelectWord, isWorkMode = false }: TagCloudProps) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const modeParam = `isWork=${isWorkMode}`;
 
   const { data: allWords = [] } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
+    queryKey: ["/api/words", modeParam],
+    queryFn: () => apiRequest("GET", `/api/words?${modeParam}`).then(r => r.json()),
   });
 
   const { data: allTags = [] } = useQuery<Tag[]>({
@@ -32,10 +35,10 @@ export default function TagCloud({ onSelectWord }: TagCloudProps) {
   });
 
   const { data: tagWords = [] } = useQuery<Word[]>({
-    queryKey: ["/api/words/tag", selectedTag],
+    queryKey: ["/api/words/tag", selectedTag, modeParam],
     queryFn: () =>
       selectedTag
-        ? apiRequest("GET", `/api/words/tag/${encodeURIComponent(selectedTag)}`).then(r => r.json())
+        ? apiRequest("GET", `/api/words/tag/${encodeURIComponent(selectedTag)}?${modeParam}`).then(r => r.json())
         : Promise.resolve([]),
     enabled: !!selectedTag,
   });

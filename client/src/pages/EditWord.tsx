@@ -20,6 +20,8 @@ const LANGUAGES = [
 
 export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
   const queryClient = useQueryClient();
+  // Allow toggling the word's mode from the edit sheet
+  const [isWorkMode, setIsWorkMode] = useState(!!word.isWork);
 
   // Parse existing tags from JSON string
   const initialTags: string[] = (() => {
@@ -98,15 +100,16 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
         originLanguage,
         meaning: meaning || null,
         context: context || null,
-        ratingEssence,
-        ratingBeauty,
-        ratingSubtlety,
+        ratingEssence: isWorkMode ? 0 : ratingEssence,
+        ratingBeauty: isWorkMode ? 0 : ratingBeauty,
+        ratingSubtlety: isWorkMode ? 0 : ratingSubtlety,
         tags: finalTags,
         pairedWord: pairedWord || null,
         pairedMeaning: pairedMeaning || null,
         source: source.trim() || null,
         location: location.trim() || null,
         locationOrder,
+        isWork: isWorkMode ? 1 : 0,
       });
       return res.json() as Promise<Word>;
     },
@@ -167,7 +170,22 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pb-4 border-b border-border/20">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Edit Word</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Edit Word</h2>
+            {/* Work mode toggle for this word */}
+            <button
+              onClick={() => setIsWorkMode(v => !v)}
+              className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-sm border transition-colors ${
+                isWorkMode
+                  ? "bg-blue-500/15 text-blue-400/80 border-blue-500/20"
+                  : "bg-muted/30 text-muted-foreground/50 border-border/30 hover:border-border/60"
+              }`}
+              title={isWorkMode ? "Switch to Aesthetic mode" : "Switch to Work mode"}
+              data-testid="toggle-word-mode"
+            >
+              {isWorkMode ? "Work" : "Aesthetic"}
+            </button>
+          </div>
           <button
             onClick={onClose}
             className="text-muted-foreground/50 hover:text-foreground transition-colors p-1"
@@ -359,12 +377,14 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                 )}
               </div>
 
-              {/* Rating dials */}
-              <div className="flex justify-around mb-6">
-                <CircularDial value={ratingEssence} onChange={setRatingEssence} label="Essence" color="#4fb8a3" />
-                <CircularDial value={ratingBeauty} onChange={setRatingBeauty} label="Beauty" color="#9b7fd4" />
-                <CircularDial value={ratingSubtlety} onChange={setRatingSubtlety} label="Subtlety" color="#d4a34f" />
-              </div>
+              {/* Rating dials — hidden for work-mode words */}
+              {!isWorkMode && (
+                <div className="flex justify-around mb-6">
+                  <CircularDial value={ratingEssence} onChange={setRatingEssence} label="Essence" color="#4fb8a3" />
+                  <CircularDial value={ratingBeauty} onChange={setRatingBeauty} label="Beauty" color="#9b7fd4" />
+                  <CircularDial value={ratingSubtlety} onChange={setRatingSubtlety} label="Subtlety" color="#d4a34f" />
+                </div>
+              )}
 
               {/* Tags */}
               <div className="mb-6">

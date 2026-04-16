@@ -187,10 +187,53 @@ export async function registerRoutes(
     }
   });
 
-  // Random word (scoped to user)
+  // ── User preferences (work mode) ──
+
+  // Get current user's preferences
+  app.get("/api/preferences", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const { createConnection } = await import("mysql2/promise");
+      const conn = await createConnection(process.env.DATABASE_URL!);
+      const [rows] = await conn.execute(
+        "SELECT work_mode FROM user_preferences WHERE user_id = ?",
+        [userId]
+      ) as any[];
+      await conn.end();
+      const workMode = rows.length > 0 ? Boolean(rows[0].work_mode) : false;
+      res.json({ workMode });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Set current user's work mode preference
+  app.post("/api/preferences", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const { workMode } = req.body;
+      if (typeof workMode !== "boolean") return res.status(400).json({ message: "workMode must be boolean" });
+      const { createConnection } = await import("mysql2/promise");
+      const conn = await createConnection(process.env.DATABASE_URL!);
+      await conn.execute(
+        `INSERT INTO user_preferences (user_id, work_mode) VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE work_mode = ?, updated_at = NOW()`,
+        [userId, workMode ? 1 : 0, workMode ? 1 : 0]
+      );
+      await conn.end();
+      res.json({ workMode });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Random word (scoped to user + mode)
   app.get("/api/random", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const word = await storage.getRandomWord(userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const word = await storage.getRandomWord(userId ?? undefined, isWork);
     if (!word) return res.status(404).json({ message: "No words saved yet" });
     res.json(word);
   });
@@ -201,40 +244,45 @@ export async function registerRoutes(
     res.json(tags);
   });
 
-  // Calendar dates (scoped to user)
+  // Calendar dates (scoped to user + mode)
   app.get("/api/calendar", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const dates = await storage.getCalendarDates(userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const dates = await storage.getCalendarDates(userId ?? undefined, isWork);
     res.json(dates);
   });
 
   // ── Words: specific sub-paths before :id ──
 
-  // Get words by date (scoped to user)
+  // Get words by date (scoped to user + mode)
   app.get("/api/words/date/:date", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const words = await storage.getWordsByDate(req.params.date, userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const words = await storage.getWordsByDate(req.params.date, userId ?? undefined, isWork);
     res.json(words);
   });
 
-  // Search words (scoped to user)
+  // Search words (scoped to user + mode)
   app.get("/api/words/search/:query", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const words = await storage.searchWords(req.params.query, userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const words = await storage.searchWords(req.params.query, userId ?? undefined, isWork);
     res.json(words);
   });
 
-  // Search by tag (scoped to user)
+  // Search by tag (scoped to user + mode)
   app.get("/api/words/tag/:tag", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const words = await storage.searchWordsByTag(req.params.tag, userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const words = await storage.searchWordsByTag(req.params.tag, userId ?? undefined, isWork);
     res.json(words);
   });
 
-  // Get all words (scoped to user)
+  // Get all words (scoped to user + mode)
   app.get("/api/words", async (req, res) => {
     const userId = await getUserFromRequest(req);
-    const words = await storage.getAllWords(userId ?? undefined);
+    const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+    const words = await storage.getAllWords(userId ?? undefined, isWork);
     res.json(words);
   });
 
@@ -332,7 +380,8 @@ export async function registerRoutes(
   app.get("/api/export/json", async (req, res) => {
     try {
       const userId = await getUserFromRequest(req);
-      const allWords = await storage.getAllWords(userId ?? undefined);
+      const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+      const allWords = await storage.getAllWords(userId ?? undefined, isWork);
       const parsed = allWords.map(w => ({
         ...w,
         tags: (() => { try { return JSON.parse(w.tags || "[]"); } catch { return []; } })(),
@@ -348,13 +397,15 @@ export async function registerRoutes(
   app.get("/api/export/excel", async (req, res) => {
     try {
       const userId = await getUserFromRequest(req);
-      const allWords = await storage.getAllWords(userId ?? undefined);
-      const headers = ["Word", "Language", "Meaning", "Context", "Essence", "Beauty", "Subtlety", "Tags", "Paired Word", "Date Added", "Source", "Location", "Location Order"];
+      const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
+      const allWords = await storage.getAllWords(userId ?? undefined, isWork);
+      const headers = ["Word", "Language", "Meaning", "Context", "Essence", "Beauty", "Subtlety", "Tags", "Paired Word", "Date Added", "Source", "Location", "Location Order", "Work"];
       const rows = allWords.map(w => [
         w.word, w.originLanguage, w.meaning || "", w.context || "",
         w.ratingEssence || 0, w.ratingBeauty || 0, w.ratingSubtlety || 0,
         (() => { try { return JSON.parse(w.tags || "[]").join(", "); } catch { return ""; } })(),
         w.pairedWord || "", w.dateAdded, w.source || "", w.location || "", w.locationOrder ?? "",
+        w.isWork ? "1" : "0",
       ]);
       const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
       res.setHeader("Content-Type", "text/csv");
@@ -389,6 +440,7 @@ export async function registerRoutes(
           location: w.location || null,
           locationOrder,
           color: w.color || null,
+          isWork: w.isWork ? 1 : 0,
         });
         count++;
       }

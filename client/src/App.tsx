@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import SharedDeckViewer from "@/pages/SharedDeckViewer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { WorkModeProvider } from "./contexts/WorkModeContext";
 
 function AppRouter() {
   return (
@@ -27,12 +28,14 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          <Toaster />
-          <Router hook={useHashLocation}>
-            <AppRouter />
-          </Router>
-        </TooltipProvider>
+        <WorkModeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router hook={useHashLocation}>
+              <AppRouter />
+            </Router>
+          </TooltipProvider>
+        </WorkModeProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

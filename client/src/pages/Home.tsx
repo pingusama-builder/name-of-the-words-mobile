@@ -14,6 +14,7 @@ import ExportImport from "@/components/ExportImport";
 import ViewErrorBoundary from "@/components/ViewErrorBoundary";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
+import { useWorkMode } from "@/contexts/WorkModeContext";
 
 type View = "collection" | "calendar" | "tags" | "add" | "sources";
 
@@ -38,17 +39,20 @@ export default function Home() {
   const shareLinkRef = useRef<HTMLInputElement>(null);
 
   const { user, isAuthenticated, logout } = useAuth();
+  const { isWorkMode, toggle: toggleWorkMode } = useWorkMode();
+
+  const modeParam = `isWork=${isWorkMode}`;
 
   const { data: words = [], isLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
-    queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
+    queryKey: ["/api/words", modeParam],
+    queryFn: () => apiRequest("GET", `/api/words?${modeParam}`).then(r => r.json()),
   });
 
   const { data: searchResults = [] } = useQuery<Word[]>({
-    queryKey: ["/api/words/search", searchQuery],
+    queryKey: ["/api/words/search", searchQuery, modeParam],
     queryFn: () =>
       searchQuery.length > 0
-        ? apiRequest("GET", `/api/words/search/${encodeURIComponent(searchQuery)}`).then(r => r.json())
+        ? apiRequest("GET", `/api/words/search/${encodeURIComponent(searchQuery)}?${modeParam}`).then(r => r.json())
         : Promise.resolve([]),
     enabled: searchQuery.length > 0,
   });
@@ -97,7 +101,7 @@ export default function Home() {
 
   const handleRandomPick = async () => {
     try {
-      const res = await apiRequest("GET", "/api/random");
+      const res = await apiRequest("GET", `/api/random?${modeParam}`);
       const word = await res.json();
       setSelectedWord(word);
     } catch {
@@ -185,17 +189,24 @@ export default function Home() {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3 border-b border-border/30 bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center gap-2.5">
-          <svg width="22" height="22" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words" className="shrink-0">
-            <path d="M12 48 C12 24, 20 16, 32 12 C44 16, 52 24, 52 48" stroke="hsl(188 35% 47%)" strokeWidth="1.5" fill="none" opacity="0.6" />
-            <path d="M16 46 C16 28, 22 20, 32 16 C42 20, 48 28, 48 46" stroke="hsl(188 35% 57%)" strokeWidth="1.2" fill="none" opacity="0.4" />
-            <rect x="28" y="28" width="8" height="8" fill="hsl(188 35% 47%)" opacity="0.7" rx="1" transform="rotate(45 32 32)" />
-          </svg>
-          <div className="flex flex-col leading-none">
-            <span className="font-serif text-sm text-foreground/90 tracking-wide">Name of the Words</span>
-            <span className="text-[10px] text-muted-foreground/60 tracking-[0.18em] uppercase mt-0.5">言之名</span>
+          <div className="flex items-center gap-2.5">
+            <svg width="22" height="22" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words" className="shrink-0">
+              <path d="M12 48 C12 24, 20 16, 32 12 C44 16, 52 24, 52 48" stroke={isWorkMode ? "hsl(220 35% 55%)" : "hsl(188 35% 47%)"} strokeWidth="1.5" fill="none" opacity="0.6" />
+              <path d="M16 46 C16 28, 22 20, 32 16 C42 20, 48 28, 48 46" stroke={isWorkMode ? "hsl(220 35% 65%)" : "hsl(188 35% 57%)"} strokeWidth="1.2" fill="none" opacity="0.4" />
+              <rect x="28" y="28" width="8" height="8" fill={isWorkMode ? "hsl(220 35% 55%)" : "hsl(188 35% 47%)"} opacity="0.7" rx="1" transform="rotate(45 32 32)" />
+            </svg>
+            <div className="flex flex-col leading-none">
+              <div className="flex items-center gap-1.5">
+                <span className="font-serif text-sm text-foreground/90 tracking-wide">Name of the Words</span>
+                {isWorkMode && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-blue-500/15 text-blue-400/80 border border-blue-500/20 tracking-wider uppercase font-medium leading-none">
+                    Work
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-muted-foreground/60 tracking-[0.18em] uppercase mt-0.5">言之名</span>
+            </div>
           </div>
-        </div>
 
         <div className="flex items-center gap-2">
           {/* Select mode toggle (collection only) */}
@@ -280,6 +291,28 @@ export default function Home() {
                           <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
                         )}
                       </div>
+                      {/* Work Mode toggle */}
+                      <button
+                        onClick={async () => { setShowUserMenu(false); await toggleWorkMode(); }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-card/80 transition-colors flex items-center justify-between border-b border-border/20"
+                        data-testid="menu-work-mode"
+                      >
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+                            <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                            <path d="M5 9h6M5 11h4" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                          </svg>
+                          Work Mode
+                        </div>
+                        <div className={`w-8 h-4.5 rounded-full transition-colors relative flex items-center px-0.5 ${
+                          isWorkMode ? "bg-blue-500/70" : "bg-border/50"
+                        }`} style={{ height: "18px", width: "32px" }}>
+                          <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                            isWorkMode ? "translate-x-3.5" : "translate-x-0"
+                          }`} style={{ width: "14px", height: "14px" }} />
+                        </div>
+                      </button>
                       <button
                         onClick={() => { setShowUserMenu(false); setShowTransferSheet(true); }}
                         className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors flex items-center gap-2 border-b border-border/20"
@@ -490,7 +523,7 @@ export default function Home() {
           {currentView === "calendar" && (
             <motion.div key="calendar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <ViewErrorBoundary viewName="Calendar">
-                <CalendarView onSelectWord={setSelectedWord} />
+                <CalendarView onSelectWord={setSelectedWord} isWorkMode={isWorkMode} />
               </ViewErrorBoundary>
             </motion.div>
           )}
@@ -498,21 +531,21 @@ export default function Home() {
           {currentView === "tags" && (
             <motion.div key="tags" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <ViewErrorBoundary viewName="Tags">
-                <TagCloud onSelectWord={setSelectedWord} />
+                <TagCloud onSelectWord={setSelectedWord} isWorkMode={isWorkMode} />
               </ViewErrorBoundary>
             </motion.div>
           )}
 
           {currentView === "add" && (
             <motion.div key="add" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}>
-              <AddWord onComplete={() => setCurrentView("collection")} />
+              <AddWord onComplete={() => setCurrentView("collection")} isWorkMode={isWorkMode} />
             </motion.div>
           )}
 
           {currentView === "sources" && (
             <motion.div key="sources" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <ViewErrorBoundary viewName="Sources">
-                <SourcesView onSelectForShare={(ids) => {
+                <SourcesView isWorkMode={isWorkMode} onSelectForShare={(ids) => {
                   setSelectedIds(new Set(ids));
                   setCurrentView("collection");
                   setSelectMode(true);
@@ -673,9 +706,20 @@ export default function Home() {
       {/* Bottom navigation */}
       <nav className="bg-background/90 backdrop-blur-md border-t border-border/30 shrink-0">
         <div className="flex items-center justify-around py-2 sm:py-3 max-w-full sm:max-w-md mx-auto px-2 sm:px-0">
+          {/* Active nav color: teal in aesthetic mode, blue in work mode */}
+          {(() => {
+            const activeColor = isWorkMode ? "text-blue-400" : "text-primary";
+            const addActive = isWorkMode
+              ? "bg-blue-500/80 border-blue-500 text-white"
+              : "bg-primary border-primary text-primary-foreground";
+            const addInactive = isWorkMode
+              ? "bg-card border-border/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400/40"
+              : "bg-card border-border/50 text-primary hover:bg-primary/10 hover:border-primary/40";
+            return (
+              <>
           <button
             onClick={() => setCurrentView("collection")}
-            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "collection" ? "text-primary" : "text-muted-foreground"}`}
+            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "collection" ? activeColor : "text-muted-foreground"}`}
             data-testid="nav-collection" aria-label="Collection"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -688,7 +732,7 @@ export default function Home() {
 
           <button
             onClick={() => setCurrentView("calendar")}
-            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "calendar" ? "text-primary" : "text-muted-foreground"}`}
+            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "calendar" ? activeColor : "text-muted-foreground"}`}
             data-testid="nav-calendar" aria-label="Calendar"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -701,9 +745,7 @@ export default function Home() {
           <button
             onClick={() => setCurrentView("add")}
             className={`w-11 h-11 -mt-3 rounded-full flex items-center justify-center border transition-all duration-300 ${
-              currentView === "add"
-                ? "bg-primary border-primary text-primary-foreground"
-                : "bg-card border-border/50 text-primary hover:bg-primary/10 hover:border-primary/40"
+              currentView === "add" ? addActive : addInactive
             }`}
             data-testid="nav-add" aria-label="Add word"
           >
@@ -714,7 +756,7 @@ export default function Home() {
 
           <button
             onClick={() => setCurrentView("tags")}
-            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "tags" ? "text-primary" : "text-muted-foreground"}`}
+            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "tags" ? activeColor : "text-muted-foreground"}`}
             data-testid="nav-tags" aria-label="Tags"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -725,7 +767,7 @@ export default function Home() {
 
           <button
             onClick={() => setCurrentView("sources")}
-            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "sources" ? "text-primary" : "text-muted-foreground"}`}
+            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "sources" ? activeColor : "text-muted-foreground"}`}
             data-testid="nav-sources" aria-label="Sources"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -733,6 +775,9 @@ export default function Home() {
               <path d="M16 3h-5.5c-1 0-1.5.5-1.5 1.5v11c0-1 0.5-1.5 1.5-1.5H16V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
             </svg>
           </button>
+              </>
+            );
+          })()}
         </div>
       </nav>
     </div>

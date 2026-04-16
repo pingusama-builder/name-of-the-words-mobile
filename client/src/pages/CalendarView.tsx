@@ -8,9 +8,11 @@ import WordCard from "@/components/WordCard";
 
 interface CalendarViewProps {
   onSelectWord: (word: Word) => void;
+  isWorkMode?: boolean;
 }
 
-export default function CalendarView({ onSelectWord }: CalendarViewProps) {
+export default function CalendarView({ onSelectWord, isWorkMode = false }: CalendarViewProps) {
+  const modeParam = `isWork=${isWorkMode}`;
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -18,17 +20,17 @@ export default function CalendarView({ onSelectWord }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const { data: calendarData = [], isError: calendarError } = useQuery<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>({
-    queryKey: ["/api/calendar"],
-    queryFn: () => apiRequest("GET", "/api/calendar").then(r => r.json()),
+    queryKey: ["/api/calendar", modeParam],
+    queryFn: () => apiRequest("GET", `/api/calendar?${modeParam}`).then(r => r.json()),
     throwOnError: false,
     retry: 1,
   });
 
   const { data: dateWords = [] } = useQuery<Word[]>({
-    queryKey: ["/api/words/date", selectedDate],
+    queryKey: ["/api/words/date", selectedDate, modeParam],
     queryFn: () =>
       selectedDate
-        ? apiRequest("GET", `/api/words/date/${selectedDate}`).then(r => r.json())
+        ? apiRequest("GET", `/api/words/date/${selectedDate}?${modeParam}`).then(r => r.json())
         : Promise.resolve([]),
     enabled: !!selectedDate,
     throwOnError: false,

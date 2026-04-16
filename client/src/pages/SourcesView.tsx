@@ -14,14 +14,16 @@ interface SourceEntry {
 
 interface SourcesViewProps {
   onSelectForShare?: (wordIds: number[]) => void;
+  isWorkMode?: boolean;
 }
 
-export default function SourcesView({ onSelectForShare }: SourcesViewProps) {
+export default function SourcesView({ onSelectForShare, isWorkMode = false }: SourcesViewProps) {
   const [activeDeck, setActiveDeck] = useState<string | null>(null);
+  const modeParam = `isWork=${isWorkMode}`;
 
   const { data: allWords = [], isLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
-    queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
+    queryKey: ["/api/words", modeParam],
+    queryFn: () => apiRequest("GET", `/api/words?${modeParam}`).then(r => r.json()),
   });
 
   // Aggregate words by source

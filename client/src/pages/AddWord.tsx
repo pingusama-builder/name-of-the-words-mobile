@@ -7,9 +7,10 @@ import type { Tag, Word } from "@shared/schema";
 
 interface AddWordProps {
   onComplete: () => void;
+  isWorkMode?: boolean;
 }
 
-export default function AddWord({ onComplete }: AddWordProps) {
+export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps) {
   const queryClient = useQueryClient();
   const [word, setWord] = useState("");
   const [originLanguage, setOriginLanguage] = useState("english");
@@ -38,9 +39,9 @@ export default function AddWord({ onComplete }: AddWordProps) {
     queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
   });
 
-  // Fetch existing words to derive source autocomplete list
+  // Fetch existing words to derive source autocomplete list (all words, not mode-filtered, for source suggestions)
   const { data: allWords = [] } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
+    queryKey: ["/api/words", "all"],
     queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
   });
 
@@ -84,9 +85,9 @@ export default function AddWord({ onComplete }: AddWordProps) {
         originLanguage,
         meaning: meaning || null,
         context: context || null,
-        ratingEssence,
-        ratingBeauty,
-        ratingSubtlety,
+        ratingEssence: isWorkMode ? 0 : ratingEssence,
+        ratingBeauty: isWorkMode ? 0 : ratingBeauty,
+        ratingSubtlety: isWorkMode ? 0 : ratingSubtlety,
         tags: tagsToSave,   // send as array — server normalises
         pairedWord: pairedWord || null,
         pairedMeaning: pairedMeaning || null,
@@ -95,6 +96,7 @@ export default function AddWord({ onComplete }: AddWordProps) {
         source: source.trim() || null,
         location: location.trim() || null,
         locationOrder,
+        isWork: isWorkMode ? 1 : 0,
       });
       return res.json();
     },
@@ -372,12 +374,14 @@ export default function AddWord({ onComplete }: AddWordProps) {
         )}
       </div>
 
-      {/* Rating dials */}
-      <div className="flex justify-around mb-6">
-        <CircularDial value={ratingEssence} onChange={setRatingEssence} label="Essence" color="#4fb8a3" />
-        <CircularDial value={ratingBeauty} onChange={setRatingBeauty} label="Beauty" color="#9b7fd4" />
-        <CircularDial value={ratingSubtlety} onChange={setRatingSubtlety} label="Subtlety" color="#d4a34f" />
-      </div>
+      {/* Rating dials — hidden in Work Mode */}
+      {!isWorkMode && (
+        <div className="flex justify-around mb-6">
+          <CircularDial value={ratingEssence} onChange={setRatingEssence} label="Essence" color="#4fb8a3" />
+          <CircularDial value={ratingBeauty} onChange={setRatingBeauty} label="Beauty" color="#9b7fd4" />
+          <CircularDial value={ratingSubtlety} onChange={setRatingSubtlety} label="Subtlety" color="#d4a34f" />
+        </div>
+      )}
 
       {/* Tags */}
       <div className="mb-6">

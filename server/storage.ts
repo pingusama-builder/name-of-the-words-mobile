@@ -1,5 +1,5 @@
 import { type Word, type InsertWord, words, type Tag, type InsertTag, tags } from "@shared/schema";
-import { eq, like, desc, and, isNull, or } from "drizzle-orm";
+import { eq, like, desc, and, isNull, or, ne } from "drizzle-orm";
 import { getDb } from "./db";
 
 /** Generate a visually distinct random hex color for a new word */
@@ -30,27 +30,39 @@ function userScope(userId?: string) {
   return isNull(words.userId);
 }
 
+// Helper: build a work-mode filter
+// isWork=true  → only work words (is_work = 1)
+// isWork=false → only aesthetic words (is_work = 0 or NULL)
+// isWork=undefined → no filter (all words)
+function modeScope(isWork?: boolean) {
+  if (isWork === true) return eq(words.isWork, 1);
+  if (isWork === false) return or(eq(words.isWork, 0), isNull(words.isWork));
+  return undefined;
+}
+
 export interface IStorage {
-  getAllWords(userId?: string): Promise<Word[]>;
+  getAllWords(userId?: string, isWork?: boolean): Promise<Word[]>;
   getWordById(id: number): Promise<Word | undefined>;
-  getWordsByDate(date: string, userId?: string): Promise<Word[]>;
-  searchWordsByTag(tag: string, userId?: string): Promise<Word[]>;
-  searchWords(query: string, userId?: string): Promise<Word[]>;
+  getWordsByDate(date: string, userId?: string, isWork?: boolean): Promise<Word[]>;
+  searchWordsByTag(tag: string, userId?: string, isWork?: boolean): Promise<Word[]>;
+  searchWords(query: string, userId?: string, isWork?: boolean): Promise<Word[]>;
   createWord(word: InsertWord): Promise<Word>;
   updateWord(id: number, updates: Partial<InsertWord>): Promise<Word>;
   deleteWord(id: number): Promise<void>;
-  getRandomWord(userId?: string): Promise<Word | undefined>;
+  getRandomWord(userId?: string, isWork?: boolean): Promise<Word | undefined>;
   getAllTags(): Promise<Tag[]>;
   createTag(tag: InsertTag): Promise<Tag>;
-  getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>;
+  getCalendarDates(userId?: string, isWork?: boolean): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getAllWords(userId?: string): Promise<Word[]> {
+  async getAllWords(userId?: string, isWork?: boolean): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    return db.select().from(words).where(scope).orderBy(desc(words.createdAt));
+    const mode = modeScope(isWork);
+    const filter = mode ? and(scope, mode) : scope;
+    return db.select().from(words).where(filter).orderBy(desc(words.createdAt));
   }
 
   async getWordById(id: number): Promise<Word | undefined> {
@@ -60,18 +72,22 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getWordsByDate(date: string, userId?: string): Promise<Word[]> {
+  async getWordsByDate(date: string, userId?: string, isWork?: boolean): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    return db.select().from(words).where(and(eq(words.dateAdded, date), scope));
+    const mode = modeScope(isWork);
+    const filter = mode ? and(eq(words.dateAdded, date), scope, mode) : and(eq(words.dateAdded, date), scope);
+    return db.select().from(words).where(filter);
   }
 
-  async searchWordsByTag(tag: string, userId?: string): Promise<Word[]> {
+  async searchWordsByTag(tag: string, userId?: string, isWork?: boolean): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const all = await db.select().from(words).where(scope);
+    const mode = modeScope(isWork);
+    const filter = mode ? and(scope, mode) : scope;
+    const all = await db.select().from(words).where(filter);
     return all.filter((w: Word) => {
       try {
         const t = JSON.parse(w.tags || "[]");
@@ -80,13 +96,15 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async searchWords(query: string, userId?: string): Promise<Word[]> {
+  async searchWords(query: string, userId?: string, isWork?: boolean): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const q = `%${query}%`;
     const textFilter = or(like(words.word, q), like(words.meaning, q), like(words.context, q));
     const scope = userScope(userId);
-    return db.select().from(words).where(and(textFilter, scope));
+    const mode = modeScope(isWork);
+    const filter = mode ? and(textFilter, scope, mode) : and(textFilter, scope);
+    return db.select().from(words).where(filter);
   }
 
   async createWord(word: InsertWord): Promise<Word> {
@@ -117,11 +135,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(words).where(eq(words.id, id));
   }
 
-  async getRandomWord(userId?: string): Promise<Word | undefined> {
+  async getRandomWord(userId?: string, isWork?: boolean): Promise<Word | undefined> {
     const db = await getDb();
     if (!db) return undefined;
     const scope = userScope(userId);
-    const all = await db.select().from(words).where(scope);
+    const mode = modeScope(isWork);
+    const filter = mode ? and(scope, mode) : scope;
+    const all = await db.select().from(words).where(filter);
     if (all.length === 0) return undefined;
     return all[Math.floor(Math.random() * all.length)];
   }
@@ -143,11 +163,13 @@ export class DatabaseStorage implements IStorage {
     return created[0] as Tag;
   }
 
-  async getCalendarDates(userId?: string): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]> {
+  async getCalendarDates(userId?: string, isWork?: boolean): Promise<{ date: string; count: number; wordIds: number[]; colors: string[] }[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
-    const all = await db.select().from(words).where(scope);
+    const mode = modeScope(isWork);
+    const filter = mode ? and(scope, mode) : scope;
+    const all = await db.select().from(words).where(filter);
     const map = new Map<string, { id: number; color: string | null }[]>();
     for (const w of all) {
       const existing = map.get(w.dateAdded) || [];
