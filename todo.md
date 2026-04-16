@@ -53,3 +53,17 @@
 - [x] Move Import/Export into user avatar dropdown menu
 - [x] Update export format to include source, location, locationOrder fields
 - [x] Update import to parse and store source, location, locationOrder fields (no backward compat needed)
+- [x] Seed 3 onboarding words (Essence, Beauty, Subtlety) for new users with meanings as app guides
+- [x] Add shared_decks table to DB schema (token, title, wordIds JSON, createdAt, ownerUserId)
+- [x] Add POST /api/share endpoint (create shared deck from selected word IDs)
+- [x] Add GET /api/share/:token endpoint (public, returns deck metadata + words)
+- [x] Add DELETE /api/share/:token endpoint (owner can revoke)
+- [x] Build batch-select mode in collection view (checkbox per card, select-all, deselect-all)
+- [x] Add source-deck select-all button in SourceDeck to select all words from that source
+- [x] Wire batch delete action (confirm dialog → delete selected words)
+- [x] Wire batch share action (opens share sheet → creates link → shows copyable URL)
+- [x] Build public SharedDeckViewer page at /share/:token (no auth required, full swipe deck)
+- [x] Add /share/:token route to App.tsx (non-hash, accessible without login)
+- [ ] Write user-facing product introduction document (ABOUT.md)
+- [x] Add GET /api/stats endpoint returning global user count (Seekers) and total word count (Words Named)
+- [x] Display Seekers and Words Named on Landing page (subtle, below the title)

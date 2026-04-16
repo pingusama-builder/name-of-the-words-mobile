@@ -69,6 +69,9 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // Ensure words/tags tables exist (runs on every startup, safe with IF NOT EXISTS)
   await ensureTables();
+  // Ensure shared_decks table exists
+  const { ensureSharedDecksTable } = await import("../sharedDecks");
+  await ensureSharedDecksTable();
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
 

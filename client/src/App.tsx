@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
+import SharedDeckViewer from "@/pages/SharedDeckViewer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -15,6 +16,8 @@ function AppRouter() {
       <Route path="/home" component={Home} />
       {/* /add, /calendar, /tags are managed as views inside Home */}
       <Route path="/add">{() => { window.location.hash = "/home?view=add"; return null; }}</Route>
+      {/* Public shared deck viewer — no auth required */}
+      <Route path="/share/:token" component={SharedDeckViewer} />
       <Route component={NotFound} />
     </Switch>
   );

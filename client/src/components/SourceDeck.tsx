@@ -8,9 +8,10 @@ import WordDetail from "@/pages/WordDetail";
 interface SourceDeckProps {
   source: string;
   onClose: () => void;
+  onShareAll?: (wordIds: number[]) => void;
 }
 
-export default function SourceDeck({ source, onClose }: SourceDeckProps) {
+export default function SourceDeck({ source, onClose, onShareAll }: SourceDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
@@ -91,8 +92,25 @@ export default function SourceDeck({ source, onClose }: SourceDeckProps) {
             <h2 className="font-serif text-sm text-foreground/90 max-w-[200px] truncate text-center">{source}</h2>
           </div>
 
-          <div className="text-xs text-muted-foreground/50 tabular-nums min-w-[40px] text-right">
-            {total > 0 ? `${currentIndex + 1} / ${total}` : "0"}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground/50 tabular-nums">
+              {total > 0 ? `${currentIndex + 1} / ${total}` : "0"}
+            </span>
+            {onShareAll && total > 0 && (
+              <button
+                onClick={() => onShareAll(sourceWords.map(w => w.id))}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
+                aria-label="Share all words from this source"
+                title="Share all words from this source"
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <circle cx="13" cy="3" r="2" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="3" cy="8" r="2" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="13" cy="13" r="2" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M5 7l6-3M5 9l6 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 

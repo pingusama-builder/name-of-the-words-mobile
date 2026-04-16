@@ -12,7 +12,11 @@ interface SourceEntry {
   colors: string[];
 }
 
-export default function SourcesView() {
+interface SourcesViewProps {
+  onSelectForShare?: (wordIds: number[]) => void;
+}
+
+export default function SourcesView({ onSelectForShare }: SourcesViewProps) {
   const [activeDeck, setActiveDeck] = useState<string | null>(null);
 
   const { data: allWords = [], isLoading } = useQuery<Word[]>({
@@ -153,6 +157,10 @@ export default function SourcesView() {
           <SourceDeck
             source={activeDeck}
             onClose={() => setActiveDeck(null)}
+            onShareAll={onSelectForShare ? (ids) => {
+              setActiveDeck(null);
+              onSelectForShare(ids);
+            } : undefined}
           />
         )}
       </AnimatePresence>

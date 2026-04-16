@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getUserFromRequest } from "./_core/auth-helper";
+import { sharedDeckStorage } from "./sharedDecks";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -9,6 +10,182 @@ export async function registerRoutes(
 ): Promise<Server> {
 
   // ── Static / aggregate endpoints first ──
+
+  // ── Global stats (public) ──
+  app.get("/api/stats", async (_req, res) => {
+    try {
+      const { createConnection } = await import("mysql2/promise");
+      const conn = await createConnection(process.env.DATABASE_URL!);
+      const [userRows] = await conn.execute("SELECT COUNT(*) AS cnt FROM users") as any[];
+      const [wordRows] = await conn.execute("SELECT COUNT(*) AS cnt FROM words") as any[];
+      await conn.end();
+      res.json({
+        seekers: Number(userRows[0].cnt),
+        wordsNamed: Number(wordRows[0].cnt),
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ── Onboarding seed ──
+  // Called once from client after first login; no-ops if user already has words
+  app.post("/api/seed", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const existing = await storage.getAllWords(userId);
+      if (existing.length > 0) return res.json({ seeded: false, message: "Already has words" });
+      const today = new Date().toISOString().split("T")[0];
+      const now = new Date().toISOString();
+      const seedWords = [
+        {
+          word: "Essence",
+          originLanguage: "english",
+          meaning: "The quality that makes something what it fundamentally is — its irreducible core.",
+          context: "Every word you save here is an attempt to name an essence: the precise quality that makes a thing itself and nothing else.",
+          ratingEssence: 12,
+          ratingBeauty: 8,
+          ratingSubtlety: 6,
+          tags: JSON.stringify(["guide", "philosophy"]),
+          dateAdded: today,
+          createdAt: now,
+          userId,
+          source: "Name of the Words",
+          location: "Welcome",
+          locationOrder: 1,
+        },
+        {
+          word: "Beauty",
+          originLanguage: "english",
+          meaning: "A quality that arrests attention and rewards it — in sound, shape, meaning, or feeling.",
+          context: "Rate a word's beauty to remember how it felt the first time you heard it. Some words are beautiful because of what they mean; others, simply because of how they sound.",
+          ratingEssence: 7,
+          ratingBeauty: 12,
+          ratingSubtlety: 8,
+          tags: JSON.stringify(["guide", "aesthetics"]),
+          dateAdded: today,
+          createdAt: now,
+          userId,
+          source: "Name of the Words",
+          location: "Welcome",
+          locationOrder: 2,
+        },
+        {
+          word: "Subtlety",
+          originLanguage: "english",
+          meaning: "The art of saying much with little — a quality of restraint that trusts the reader to feel what is not said.",
+          context: "A word scores high in subtlety when its meaning arrives sideways, when it implies more than it states. The best words are icebergs.",
+          ratingEssence: 8,
+          ratingBeauty: 9,
+          ratingSubtlety: 12,
+          tags: JSON.stringify(["guide", "language"]),
+          dateAdded: today,
+          createdAt: now,
+          userId,
+          source: "Name of the Words",
+          location: "Welcome",
+          locationOrder: 3,
+        },
+      ];
+      for (const w of seedWords) {
+        await storage.createWord(w as any);
+      }
+      res.json({ seeded: true, count: seedWords.length });
+    } catch (error: any) {
+      console.error("[Seed] Error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ── Shared decks ──
+
+  // Create a shared deck from a list of word IDs
+  app.post("/api/share", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const { wordIds, title } = req.body;
+      if (!Array.isArray(wordIds) || wordIds.length === 0) {
+        return res.status(400).json({ message: "wordIds must be a non-empty array" });
+      }
+      const deck = await sharedDeckStorage.createDeck({
+        ownerUserId: userId,
+        wordIds: wordIds.map(Number),
+        title: title || null,
+      });
+      res.status(201).json(deck);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // List shared decks owned by the current user
+  app.get("/api/share", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const decks = await sharedDeckStorage.getDecksByOwner(userId);
+      res.json(decks);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Public: view a shared deck by token (no auth required)
+  app.get("/api/share/:token", async (req, res) => {
+    try {
+      const deck = await sharedDeckStorage.getDeckByToken(req.params.token);
+      if (!deck) return res.status(404).json({ message: "Shared deck not found or has been revoked" });
+      // Fetch the actual word objects
+      const wordIds: number[] = JSON.parse(deck.wordIds);
+      const wordObjects = await Promise.all(
+        wordIds.map(id => storage.getWordById(id))
+      );
+      const words = wordObjects.filter(Boolean);
+      res.json({ deck, words });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Delete (revoke) a shared deck
+  app.delete("/api/share/:token", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const deck = await sharedDeckStorage.getDeckByToken(req.params.token);
+      if (!deck) return res.status(404).json({ message: "Not found" });
+      if (deck.ownerUserId !== userId) return res.status(403).json({ message: "Not authorized" });
+      await sharedDeckStorage.deleteDeck(req.params.token);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Batch delete words
+  app.post("/api/words/batch-delete", async (req, res) => {
+    try {
+      const userId = await getUserFromRequest(req);
+      if (!userId) return res.status(401).json({ message: "Not authenticated" });
+      const { wordIds } = req.body;
+      if (!Array.isArray(wordIds) || wordIds.length === 0) {
+        return res.status(400).json({ message: "wordIds must be a non-empty array" });
+      }
+      let deleted = 0;
+      for (const id of wordIds) {
+        const existing = await storage.getWordById(Number(id));
+        if (!existing) continue;
+        if (existing.userId && existing.userId !== userId) continue; // skip unauthorized
+        await storage.deleteWord(Number(id));
+        deleted++;
+      }
+      res.json({ deleted });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
   // Random word (scoped to user)
   app.get("/api/random", async (req, res) => {
