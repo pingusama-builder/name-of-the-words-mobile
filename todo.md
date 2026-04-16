@@ -99,3 +99,6 @@
 - [x] Update WordCard: make language badge tappable (calls onLanguageClick), make tag chips tappable (calls onTagClick)
 - [x] Source chips on word cards already open SourceDeck — confirmed still working
 - [x] Add persistent language filter pill row above collection (always visible, shows languages present in word bank, All + per-language pills)
+- [x] Clear all test/seed data from DB (test words, test users)
+- [x] Fix Seekers stat: count DISTINCT openId from users table (deduped real sign-ins)
+- [x] Fix Words Named stat: count only words WHERE user_id IS NOT NULL

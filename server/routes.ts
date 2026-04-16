@@ -16,8 +16,10 @@ export async function registerRoutes(
     try {
       const { createConnection } = await import("mysql2/promise");
       const conn = await createConnection(process.env.DATABASE_URL!);
-      const [userRows] = await conn.execute("SELECT COUNT(*) AS cnt FROM users") as any[];
-      const [wordRows] = await conn.execute("SELECT COUNT(*) AS cnt FROM words") as any[];
+      // Seekers: distinct real users (those who have signed in = exist in users table, deduped by openId)
+      const [userRows] = await conn.execute("SELECT COUNT(DISTINCT openId) AS cnt FROM users") as any[];
+      // Words Named: only words owned by a real user (user_id IS NOT NULL)
+      const [wordRows] = await conn.execute("SELECT COUNT(*) AS cnt FROM words WHERE user_id IS NOT NULL") as any[];
       await conn.end();
       res.json({
         seekers: Number(userRows[0].cnt),
