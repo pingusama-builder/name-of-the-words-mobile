@@ -236,7 +236,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mt-4 text-xs text-muted-foreground/60 uppercase tracking-[0.2em]"
+                className="mt-4 text-xs text-muted-foreground/80 uppercase tracking-[0.2em]"
               >
                 saved
               </motion.p>
@@ -251,7 +251,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                   value={wordText}
                   onChange={(e) => setWordText(e.target.value)}
                   className="w-full bg-transparent border-b border-border/40 pb-2 text-lg text-foreground
-                    placeholder:text-muted-foreground/40 outline-none focus:border-primary/40 transition-colors"
+                    placeholder:text-muted-foreground/70 outline-none focus:border-primary/40 transition-colors"
                   data-testid="edit-input-word"
                 />
               </div>
@@ -281,7 +281,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                   onChange={(e) => setMeaning(e.target.value)}
                   rows={2}
                   className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
-                    placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors resize-none"
+                    placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors resize-none"
                   data-testid="edit-input-meaning"
                 />
               </div>
@@ -294,14 +294,14 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                   onChange={(e) => setContext(e.target.value)}
                   rows={2}
                   className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
-                    placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors resize-none"
+                    placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors resize-none"
                   data-testid="edit-input-context"
                 />
               </div>
 
               {/* Source & Location */}
               <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
-                <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Source</p>
+                <p className="text-xs text-muted-foreground/80 mb-2 uppercase tracking-wider">Source</p>
                 <div className="relative mb-2">
                   <input
                     ref={sourceInputRef}
@@ -312,7 +312,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                     onFocus={() => setShowSourceSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSourceSuggestions(false), 150)}
                     className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-                      placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                      placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
                     data-testid="edit-input-source"
                   />
                   <AnimatePresence>
@@ -347,21 +347,21 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-                    placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                    placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
                   data-testid="edit-input-location"
                 />
               </div>
 
               {/* Paired word */}
               <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
-                <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Perfect Match Pair</p>
+                <p className="text-xs text-muted-foreground/80 mb-2 uppercase tracking-wider">Perfect Match Pair</p>
                 <input
                   type="text"
                   placeholder="Paired word..."
                   value={pairedWord}
                   onChange={(e) => setPairedWord(e.target.value)}
                   className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-                    placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                    placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
                   data-testid="edit-input-paired-word"
                 />
                 {pairedWord && (
@@ -371,7 +371,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                     value={pairedMeaning}
                     onChange={(e) => setPairedMeaning(e.target.value)}
                     className="w-full mt-2 bg-transparent border-b border-border/30 pb-1 text-xs text-foreground
-                      placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+                      placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
                     data-testid="edit-input-paired-meaning"
                   />
                 )}
@@ -426,7 +426,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                       }
                     }}
                     className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
-                      placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors"
+                      placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
                     data-testid="edit-input-tags"
                   />
                   <AnimatePresence>

@@ -187,7 +187,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-5 text-xs text-muted-foreground/60 uppercase tracking-[0.25em]"
+          className="mt-5 text-xs text-muted-foreground/80 uppercase tracking-[0.25em]"
         >
           word named
         </motion.p>
@@ -230,7 +230,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           value={word}
           onChange={(e) => setWord(e.target.value)}
           className="w-full bg-transparent border-b border-border/40 pb-2 text-lg text-foreground
-            placeholder:text-muted-foreground/40 outline-none focus:border-primary/40 transition-colors"
+            placeholder:text-muted-foreground/70 outline-none focus:border-primary/40 transition-colors"
           autoFocus
           data-testid="input-word"
         />
@@ -262,7 +262,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           onChange={(e) => setMeaning(e.target.value)}
           rows={2}
           className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
-            placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors resize-none"
+            placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors resize-none"
           data-testid="input-meaning"
         />
       </div>
@@ -275,7 +275,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           onChange={(e) => { setContext(e.target.value); setContextWarning(false); }}
           rows={2}
           className={`w-full bg-card/30 border rounded-lg px-3 py-2 text-sm text-foreground
-            placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors resize-none
+            placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors resize-none
             ${contextWarning ? "border-amber-500/50" : "border-border/30"}`}
           data-testid="input-context"
         />
@@ -288,7 +288,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
 
       {/* Source & Location */}
       <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
-        <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Source</p>
+        <p className="text-xs text-muted-foreground/80 mb-2 uppercase tracking-wider">Source</p>
 
         {/* Source input with autocomplete */}
         <div className="relative mb-2">
@@ -301,7 +301,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
             onFocus={() => setShowSourceSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSourceSuggestions(false), 150)}
             className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-              placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+              placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
             data-testid="input-source"
           />
           <AnimatePresence>
@@ -342,14 +342,14 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           className="w-full bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-            placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+            placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
           data-testid="input-location"
         />
       </div>
 
       {/* Paired word */}
       <div className="mb-5 p-3 rounded-lg border border-border/20 bg-card/20">
-        <p className="text-xs text-muted-foreground/60 mb-2 uppercase tracking-wider">Perfect Match Pair</p>
+        <p className="text-xs text-muted-foreground/80 mb-2 uppercase tracking-wider">Perfect Match Pair</p>
         <div className="flex gap-2">
           <input
             type="text"
@@ -357,7 +357,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
             value={pairedWord}
             onChange={(e) => setPairedWord(e.target.value)}
             className="flex-1 bg-transparent border-b border-border/30 pb-1 text-sm text-foreground
-              placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+              placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
             data-testid="input-paired-word"
           />
         </div>
@@ -368,7 +368,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
             value={pairedMeaning}
             onChange={(e) => setPairedMeaning(e.target.value)}
             className="w-full mt-2 bg-transparent border-b border-border/30 pb-1 text-xs text-foreground
-              placeholder:text-muted-foreground/30 outline-none focus:border-primary/30 transition-colors"
+              placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
             data-testid="input-paired-meaning"
           />
         )}
@@ -432,7 +432,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
               }
             }}
             className="w-full bg-card/30 border border-border/30 rounded-lg px-3 py-2 text-sm text-foreground
-              placeholder:text-muted-foreground/40 outline-none focus:border-primary/30 transition-colors"
+              placeholder:text-muted-foreground/70 outline-none focus:border-primary/30 transition-colors"
             data-testid="input-tags"
           />
 
@@ -476,7 +476,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           </AnimatePresence>
         </div>
 
-        <p className="text-xs text-muted-foreground/40 mt-1.5">
+        <p className="text-xs text-muted-foreground/65 mt-1.5">
           Press Enter or comma to add · Backspace to remove last
         </p>
       </div>

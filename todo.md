@@ -82,3 +82,8 @@
 - [x] Update EditWord form: show/hide ratings based on word's isWork flag, allow toggling isWork on existing words
 - [x] Update export to include isWork column; import parses isWork field
 - [x] Visual distinction in Work mode: muted header badge, slightly different accent, no rating bars in cards
+
+## Contrast / Readability
+- [x] Boost placeholder text opacity in AddWord, EditWord, and global CSS (too faint on desktop)
+- [x] Boost section label (SOURCE, PERFECT MATCH PAIR, etc.) contrast in AddWord/EditWord
+- [x] Ensure input field typed text is clearly visible against dark background

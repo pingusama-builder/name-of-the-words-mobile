@@ -90,7 +90,7 @@ export default function CircularDial({
           y={center}
           textAnchor="middle"
           dominantBaseline="central"
-          fill={value > 0 ? color : "hsl(40 3% 42%)"}
+          fill={value > 0 ? color : "hsl(40 4% 58%)"}
           fontSize={size * 0.2}
           fontFamily="var(--font-sans)"
           fontWeight={500}
@@ -98,7 +98,7 @@ export default function CircularDial({
           {value}
         </text>
       </svg>
-      <span className="text-xs text-muted-foreground tracking-wide uppercase">
+      <span className="text-xs text-muted-foreground/90 tracking-wide uppercase">
         {label}
       </span>
     </div>
