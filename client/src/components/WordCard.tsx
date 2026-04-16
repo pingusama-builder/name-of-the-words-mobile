@@ -160,7 +160,7 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
 
       {/* Context */}
       {word.context && (
-        <p className="mt-2 text-xs text-muted-foreground/60 italic line-clamp-1">
+        <p className="mt-2 text-xs italic line-clamp-1" style={{ color: '#7bbfbb' }}>
           "{word.context}"
         </p>
       )}
