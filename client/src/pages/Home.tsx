@@ -194,6 +194,9 @@ export default function Home() {
 
   const clearFilters = () => { setActiveLanguage(null); setActiveTag(null); };
 
+  const LANG_LABELS: Record<string, string> = { cantonese: '粵', mandarin: '中', english: 'EN', japanese: '日', korean: '韓', french: 'FR', german: 'DE', spanish: 'ES', other: '…' };
+  const availableLanguages = Array.from(new Set((words as any[]).map((w: any) => w.originLanguage).filter(Boolean)));
+
   const userInitials = user?.name
     ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
     : "?";
@@ -500,6 +503,35 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
+              {/* Persistent language filter row */}
+              {!isLoading && availableLanguages.length > 1 && !selectMode && (
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2 mb-1">
+                  <button
+                    onClick={() => setActiveLanguage(null)}
+                    className={`shrink-0 text-xs px-3 py-1 rounded-full border transition-colors ${
+                      !activeLanguage
+                        ? 'bg-primary/20 border-primary/40 text-primary font-medium'
+                        : 'border-border/30 text-muted-foreground hover:border-primary/30 hover:text-primary'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {availableLanguages.map((lang: string) => (
+                    <button
+                      key={lang}
+                      onClick={() => setActiveLanguage(activeLanguage === lang ? null : lang)}
+                      className={`shrink-0 text-xs px-3 py-1 rounded-full border transition-colors ${
+                        activeLanguage === lang
+                          ? 'bg-primary/20 border-primary/40 text-primary font-medium'
+                          : 'border-border/30 text-muted-foreground hover:border-primary/30 hover:text-primary'
+                      }`}
+                    >
+                      {LANG_LABELS[lang] || lang}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {isLoading ? (
                 <div className="flex flex-col gap-3 mt-4">
                   {[1, 2, 3].map((i) => (

@@ -98,3 +98,4 @@
 - [x] Apply language/tag filter to displayedWords in collection view
 - [x] Update WordCard: make language badge tappable (calls onLanguageClick), make tag chips tappable (calls onTagClick)
 - [x] Source chips on word cards already open SourceDeck — confirmed still working
+- [x] Add persistent language filter pill row above collection (always visible, shows languages present in word bank, All + per-language pills)
