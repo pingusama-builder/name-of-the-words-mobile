@@ -205,7 +205,11 @@ export default function Home() {
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3 border-b border-border/30 bg-background/80 backdrop-blur-sm">
-          <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setCurrentView("collection")}
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+            aria-label="Back to word collection"
+          >
             <svg width="22" height="22" viewBox="0 0 64 64" fill="none" aria-label="Name of the Words" className="shrink-0">
               <path d="M12 48 C12 24, 20 16, 32 12 C44 16, 52 24, 52 48" stroke={isWorkMode ? "hsl(220 35% 55%)" : "hsl(188 35% 47%)"} strokeWidth="1.5" fill="none" opacity="0.6" />
               <path d="M16 46 C16 28, 22 20, 32 16 C42 20, 48 28, 48 46" stroke={isWorkMode ? "hsl(220 35% 65%)" : "hsl(188 35% 57%)"} strokeWidth="1.2" fill="none" opacity="0.4" />
@@ -222,7 +226,7 @@ export default function Home() {
               </div>
               <span className="text-[10px] text-muted-foreground/60 tracking-[0.18em] uppercase mt-0.5">言之名</span>
             </div>
-          </div>
+          </button>
 
         <div className="flex items-center gap-2">
           {/* Select mode toggle (collection only) */}

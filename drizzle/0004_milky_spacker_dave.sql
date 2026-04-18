@@ -1,0 +1,1 @@
+ALTER TABLE `words` ADD `is_work` int DEFAULT 0;
