@@ -102,3 +102,8 @@
 - [x] Clear all test/seed data from DB (test words, test users)
 - [x] Fix Seekers stat: count DISTINCT openId from users table (deduped real sign-ins)
 - [x] Fix Words Named stat: count only words WHERE user_id IS NOT NULL
+
+## UX Fixes
+- [x] Float add-word button to fixed bottom-right, always visible during scroll
+- [x] Make logo clickable to navigate back to collection view
+- [x] Add cancel button in AddWord header

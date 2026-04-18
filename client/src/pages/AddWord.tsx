@@ -8,9 +8,10 @@ import type { Tag, Word } from "@shared/schema";
 interface AddWordProps {
   onComplete: () => void;
   isWorkMode?: boolean;
+  onCancel?: () => void;
 }
 
-export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps) {
+export default function AddWord({ onComplete, isWorkMode = false, onCancel }: AddWordProps) {
   const queryClient = useQueryClient();
   const [word, setWord] = useState("");
   const [originLanguage, setOriginLanguage] = useState("english");
@@ -222,6 +223,18 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
 
   return (
     <div className="pb-8 pt-2">
+      {/* Header with cancel button */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-serif">Add Word</h2>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="px-3 py-1 text-sm rounded border border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/60 transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
       {/* Word input */}
       <div className="mb-5">
         <input
