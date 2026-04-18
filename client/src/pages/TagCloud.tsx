@@ -32,6 +32,7 @@ export default function TagCloud({ onSelectWord, isWorkMode = false }: TagCloudP
 
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
+    queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
   });
 
   const { data: tagWords = [] } = useQuery<Word[]>({
@@ -43,7 +44,7 @@ export default function TagCloud({ onSelectWord, isWorkMode = false }: TagCloudP
     enabled: !!selectedTag,
   });
 
-  // Count words per tag
+  // Count words per tag (from allWords, not allTags)
   const tagCounts = new Map<string, number>();
   for (const word of allWords) {
     try {
