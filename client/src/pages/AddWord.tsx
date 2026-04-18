@@ -222,6 +222,18 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
 
   return (
     <div className="pb-8 pt-2">
+      {/* Header with Cancel button */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-sm text-muted-foreground/60 uppercase tracking-wider">Add Word</h2>
+        <button
+          onClick={onComplete}
+          className="text-xs px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card/40 transition-colors border border-border/30 hover:border-border/60"
+          aria-label="Cancel"
+        >
+          Cancel
+        </button>
+      </div>
+
       {/* Word input */}
       <div className="mb-5">
         <input
