@@ -7,15 +7,46 @@ interface Stats {
   wordsNamed: number;
 }
 
+interface Quote {
+  text: string;
+  attr: string;
+}
+
+const QUOTES: Quote[] = [
+  {
+    text: "A word is nothing but a painting of a fire. A name is the fire itself.",
+    attr: "The Name of the Wind — Patrick Rothfuss"
+  },
+  {
+    text: "Words are pale shadows of forgotten names. As names have power, words have power.",
+    attr: "The Name of the Wind — Patrick Rothfuss"
+  },
+  {
+    text: "For magic consists in this, the true naming of a thing.",
+    attr: "A Wizard of Earthsea — Ursula K. Le Guin"
+  },
+  {
+    text: "The limits of my language mean the limits of my world.",
+    attr: "Tractatus Logico-Philosophicus — Ludwig Wittgenstein"
+  }
+];
+
 export default function Landing() {
   const [, navigate] = useLocation();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [quote, setQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
     fetch("/api/stats")
       .then(r => r.json())
       .then(d => setStats(d))
       .catch(() => {}); // silent fail — stats are decorative
+  }, []);
+
+  useEffect(() => {
+    // Select a random quote on mount
+    const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    setQuote(randomQuote);
   }, []);
 
   return (
@@ -97,6 +128,19 @@ export default function Landing() {
       >
         言之名
       </motion.p>
+
+      {/* Quote display */}
+      {quote && (
+        <motion.div
+          className="login-quote-wrap px-6 mb-8 max-w-md"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, delay: 0.6 }}
+        >
+          <p className="login-quote mb-0">{quote.text}</p>
+          <span className="login-quote-attr">{quote.attr}</span>
+        </motion.div>
+      )}
 
       {/* Global stats */}
       <motion.div
