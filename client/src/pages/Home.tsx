@@ -230,6 +230,24 @@ export default function Home() {
           </button>
 
         <div className="flex items-center gap-2">
+          {/* Floating Add button (top-right) */}
+          {currentView !== "add" && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => setCurrentView("add")}
+              className="w-8 h-8 rounded-full flex items-center justify-center border border-primary/30 transition-all duration-300 hover:border-primary/60 hover:bg-primary/5"
+              data-testid="floating-add-button"
+              aria-label="Add word"
+            >
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-primary/70 hover:text-primary transition-colors duration-300">
+                <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </motion.button>
+          )}
+
           {/* Select mode toggle (collection only) */}
           {currentView === "collection" && words.length > 0 && (
             <button
@@ -879,23 +897,7 @@ export default function Home() {
           })()}
         </div>
       </nav>
-      {/* Floating Add button (fixed at bottom) */}
-      {currentView !== "add" && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          onClick={() => setCurrentView("add")}
-          className="fixed bottom-24 right-6 w-12 h-12 rounded-full flex items-center justify-center border border-primary/30 transition-all duration-300 hover:border-primary/60 hover:bg-primary/5 z-40"
-          data-testid="floating-add-button"
-          aria-label="Add word"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-primary/70 hover:text-primary transition-colors duration-300">
-            <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </motion.button>
-      )}
+
     </div>
   );
 }
