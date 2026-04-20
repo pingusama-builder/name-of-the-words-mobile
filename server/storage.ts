@@ -100,7 +100,17 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     if (!db) return [];
     const q = `%${query}%`;
-    const textFilter = or(like(words.word, q), like(words.meaning, q), like(words.context, q));
+    // Search across all text fields: word, meaning, context, source, location, pairedWord, pairedMeaning, and tags
+    const textFilter = or(
+      like(words.word, q),
+      like(words.meaning, q),
+      like(words.context, q),
+      like(words.source, q),
+      like(words.location, q),
+      like(words.pairedWord, q),
+      like(words.pairedMeaning, q),
+      like(words.tags, q)
+    );
     const scope = userScope(userId);
     const mode = modeScope(isWork);
     const filter = mode ? and(textFilter, scope, mode) : and(textFilter, scope);
