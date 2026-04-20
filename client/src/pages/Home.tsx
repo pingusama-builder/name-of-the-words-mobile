@@ -887,7 +887,7 @@ export default function Home() {
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           onClick={() => setCurrentView("add")}
-          className="fixed bottom-6 right-6 w-12 h-12 rounded-full flex items-center justify-center border border-primary/30 transition-all duration-300 hover:border-primary/60 hover:bg-primary/5 z-40"
+          className="fixed bottom-24 right-6 w-12 h-12 rounded-full flex items-center justify-center border border-primary/30 transition-all duration-300 hover:border-primary/60 hover:bg-primary/5 z-40"
           data-testid="floating-add-button"
           aria-label="Add word"
         >
