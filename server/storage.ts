@@ -31,12 +31,12 @@ function userScope(userId?: string) {
 }
 
 // Helper: build a work-mode filter
-// isWork=true  → only work words (is_work = 1)
-// isWork=false → only aesthetic words (is_work = 0 or NULL)
+// isWork=true  → work words (is_work = 1) OR mutual-arising words (sourceMode = 'mutual-arising')
+// isWork=false → aesthetic words (is_work = 0 or NULL) OR mutual-arising words
 // isWork=undefined → no filter (all words)
 function modeScope(isWork?: boolean) {
-  if (isWork === true) return eq(words.isWork, 1);
-  if (isWork === false) return or(eq(words.isWork, 0), isNull(words.isWork));
+  if (isWork === true) return or(eq(words.isWork, 1), eq(words.sourceMode, 'mutual-arising'));
+  if (isWork === false) return or(eq(words.isWork, 0), isNull(words.isWork), eq(words.sourceMode, 'mutual-arising'));
   return undefined;
 }
 

@@ -112,7 +112,12 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
           {word.word}
         </h3>
         <div className="flex items-center gap-1.5 shrink-0">
-          {!!word.isWork && (
+          {word.sourceMode === "mutual-arising" && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-amber-500/15 text-amber-400/80 border border-amber-500/20 tracking-wider uppercase font-medium leading-none">
+              Mutual-Arising
+            </span>
+          )}
+          {!!word.isWork && !word.sourceMode?.includes("mutual") && (
             <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-blue-500/15 text-blue-400/80 border border-blue-500/20 tracking-wider uppercase font-medium leading-none">
               Work
             </span>

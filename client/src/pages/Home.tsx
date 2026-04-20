@@ -40,6 +40,7 @@ export default function Home() {
 
   const { user, isAuthenticated, logout } = useAuth();
   const { isWorkMode, toggle: toggleWorkMode } = useWorkMode();
+  const [isMutualMode, setIsMutualMode] = useState(false);
 
   const modeParam = `isWork=${isWorkMode}`;
 

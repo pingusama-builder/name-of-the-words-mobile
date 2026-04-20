@@ -34,6 +34,9 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
   const [showSourceSuggestions, setShowSourceSuggestions] = useState(false);
   const sourceInputRef = useRef<HTMLInputElement>(null);
 
+  // Mutual-arising mode
+  const [isMutual, setIsMutual] = useState(false);
+
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["/api/tags"],
     queryFn: () => apiRequest("GET", "/api/tags").then(r => r.json()),
@@ -97,6 +100,7 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
         location: location.trim() || null,
         locationOrder,
         isWork: isWorkMode ? 1 : 0,
+        sourceMode: isMutual ? "mutual-arising" : (isWorkMode ? "work" : "normal"),
       });
       return res.json();
     },
@@ -491,6 +495,28 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
         <p className="text-xs text-muted-foreground/65 mt-1.5">
           Press Enter or comma to add · Backspace to remove last
         </p>
+      </div>
+
+      {/* Mutual-Arising checkbox */}
+      <div className="mb-6 flex items-center gap-2.5">
+        <button
+          onClick={() => setIsMutual(!isMutual)}
+          className="w-5 h-5 rounded border border-primary/30 flex items-center justify-center transition-all duration-200 hover:border-primary/60"
+          style={{
+            backgroundColor: isMutual ? "hsl(188 35% 47% / 0.15)" : "transparent",
+            borderColor: isMutual ? "hsl(188 35% 47% / 0.6)" : "hsl(188 35% 47% / 0.3)"
+          }}
+          aria-label="Toggle mutual-arising"
+        >
+          {isMutual && (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-primary">
+              <path d="M2 6l2.5 2.5L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+        <label className="text-sm text-muted-foreground/70 cursor-pointer select-none" onClick={() => setIsMutual(!isMutual)}>
+          Mutual-Arising (visible in all modes)
+        </label>
       </div>
 
       {/* Save button */}

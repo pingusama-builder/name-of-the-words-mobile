@@ -312,6 +312,7 @@ export async function registerRoutes(
         tags: JSON.stringify(tagsArray),
         dateAdded: req.body.dateAdded || new Date().toISOString().split("T")[0],
         createdAt: req.body.createdAt || new Date().toISOString(),
+        sourceMode: req.body.sourceMode || "normal",
       };
       const word = await storage.createWord(wordData);
       // Ensure every tag exists in the tags table

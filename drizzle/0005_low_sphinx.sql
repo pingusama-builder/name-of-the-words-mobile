@@ -1,0 +1,1 @@
+ALTER TABLE `words` ADD `source_mode` varchar(32) DEFAULT 'normal';

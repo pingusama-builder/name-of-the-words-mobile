@@ -22,6 +22,7 @@ export const words = mysqlTable("words", {
   location: varchar("location", { length: 255 }), // free text: "p. 142", "ch. 3", "第三章", etc.
   locationOrder: int("location_order"), // auto-extracted integer from location for sorting
   isWork: int("is_work").default(0), // 0 = aesthetic mode, 1 = work mode
+  sourceMode: varchar("source_mode", { length: 32 }).default("normal"), // "normal" | "work" | "mutual-arising"
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({
