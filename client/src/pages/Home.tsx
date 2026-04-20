@@ -333,9 +333,28 @@ export default function Home() {
                             isWorkMode ? "translate-x-3.5" : "translate-x-0"
                           }`} style={{ width: "14px", height: "14px" }} />
                         </div>
-                      </button>
-                      <button
-                        onClick={() => { setShowUserMenu(false); setShowTransferSheet(true); }}
+                       </button>
+                       <button
+                         onClick={() => { setShowUserMenu(false); setIsMutualMode(!isMutualMode); }}
+                         className="w-full text-left px-4 py-3 text-sm hover:bg-card/80 transition-colors flex items-center justify-between border-b border-border/20"
+                         data-testid="menu-mutual-mode"
+                       >
+                         <div className="flex items-center gap-2 text-muted-foreground">
+                           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                             <path d="M2 8h12M8 2v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                           </svg>
+                           Mutual-Arising
+                         </div>
+                         <div className={`w-8 h-4.5 rounded-full transition-colors relative flex items-center px-0.5 ${
+                           isMutualMode ? "bg-amber-500/70" : "bg-border/50"
+                         }`} style={{ height: "18px", width: "32px" }}>
+                           <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                             isMutualMode ? "translate-x-3.5" : "translate-x-0"
+                           }`} style={{ width: "14px", height: "14px" }} />
+                         </div>
+                       </button>
+                       <button
+                         onClick={() => { setShowUserMenu(false); setShowTransferSheet(true); }}
                         className="w-full text-left px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors flex items-center gap-2 border-b border-border/20"
                         data-testid="menu-transfer"
                       >

@@ -22,6 +22,9 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
   const queryClient = useQueryClient();
   // Allow toggling the word's mode from the edit sheet
   const [isWorkMode, setIsWorkMode] = useState(!!word.isWork);
+  const [sourceMode, setSourceMode] = useState<'normal' | 'work' | 'mutual-arising'>((word.sourceMode as 'normal' | 'work' | 'mutual-arising') || 'normal');
+  const [showMigrationConfirm, setShowMigrationConfirm] = useState(false);
+  const [pendingSourceMode, setPendingSourceMode] = useState<'normal' | 'work' | 'mutual-arising' | null>(null);
 
   // Parse existing tags from JSON string
   const initialTags: string[] = (() => {
@@ -110,6 +113,7 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
         location: location.trim() || null,
         locationOrder,
         isWork: isWorkMode ? 1 : 0,
+        sourceMode,
       });
       return res.json() as Promise<Word>;
     },
@@ -466,6 +470,26 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
                 </p>
               </div>
 
+              {/* Migration dropdown */}
+              <div className="mb-6">
+                <label className="text-xs text-muted-foreground/70 uppercase tracking-wider block mb-2">Word Mode</label>
+                <select
+                  value={sourceMode}
+                  onChange={(e) => {
+                    const newMode = e.target.value as 'normal' | 'work' | 'mutual-arising';
+                    if (newMode !== sourceMode) {
+                      setPendingSourceMode(newMode);
+                      setShowMigrationConfirm(true);
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-lg bg-card/40 border border-border/30 text-sm text-foreground focus:border-primary/40 focus:outline-none transition-colors"
+                >
+                  <option value="normal">Normal Collection</option>
+                  <option value="work">Work Mode</option>
+                  <option value="mutual-arising">Mutual-Arising (all modes)</option>
+                </select>
+              </div>
+
               {/* Error message */}
               {saveError && (
                 <p className="text-xs text-destructive/80 mb-3 px-1">{saveError}</p>
@@ -496,6 +520,52 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
           )}
         </div>
       </motion.div>
+
+      {/* Migration confirmation dialog */}
+      <AnimatePresence>
+        {showMigrationConfirm && pendingSourceMode && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowMigrationConfirm(false)}
+            />
+            <motion.div
+              className="relative bg-card border border-border/50 rounded-xl p-6 max-w-sm mx-4 shadow-xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <h3 className="text-sm font-medium text-foreground mb-2">Change Word Mode?</h3>
+              <p className="text-xs text-muted-foreground/80 mb-6">
+                Moving this word to <strong>{pendingSourceMode === 'mutual-arising' ? 'Mutual-Arising' : pendingSourceMode === 'work' ? 'Work Mode' : 'Normal Collection'}</strong> will make it visible in that mode.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowMigrationConfirm(false)}
+                  className="flex-1 px-3 py-2 rounded-lg bg-card/40 border border-border/30 text-sm text-muted-foreground hover:bg-card/60 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setSourceMode(pendingSourceMode);
+                    setShowMigrationConfirm(false);
+                    setPendingSourceMode(null);
+                  }}
+                  className="flex-1 px-3 py-2 rounded-lg bg-primary/15 border border-primary/30 text-sm text-primary hover:bg-primary/25 transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
