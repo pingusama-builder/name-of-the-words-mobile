@@ -6,8 +6,6 @@ import type { Word } from "@shared/schema";
 
 export default function QueueView() {
   const queryClient = useQueryClient();
-  const [selectedWordId, setSelectedWordId] = useState<number | null>(null);
-  const [resolveMode, setResolveMode] = useState<"normal" | "work" | "mutual-arising">("normal");
   const [selectMode, setSelectMode] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<Set<number>>(new Set());
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -24,21 +22,6 @@ export default function QueueView() {
     const dateA = new Date(a.createdAt).getTime();
     const dateB = new Date(b.createdAt).getTime();
     return dateB - dateA;
-  });
-
-  // Mutation to resolve a queued entry
-  const resolveMutation = useMutation({
-    mutationFn: async (wordId: number) => {
-      const res = await apiRequest("PATCH", `/api/words/${wordId}`, {
-        isQueued: 0,
-        sourceMode: resolveMode,
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/words"] });
-      setSelectedWordId(null);
-    },
   });
 
   // Mutation to delete queued entries
@@ -125,7 +108,8 @@ export default function QueueView() {
                 if (selectMode) {
                   handleToggleSelect(word.id);
                 } else {
-                  setSelectedWordId(word.id);
+                  // Navigate back to collection view and open the word
+                  window.location.hash = `/home?wordId=${word.id}`;
                 }
               }}
               className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${
@@ -208,66 +192,6 @@ export default function QueueView() {
           >
             Delete {selectedForDelete.size} word{selectedForDelete.size !== 1 ? 's' : ''}
           </button>
-        </motion.div>
-      )}
-
-      {/* Resolve dialog */}
-      {selectedWordId && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setSelectedWordId(null)}
-          className="fixed inset-0 bg-black/50 flex items-end z-50"
-        >
-          <motion.div
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            exit={{ y: 100 }}
-            onClick={e => e.stopPropagation()}
-            className="w-full bg-background border-t border-border/30 rounded-t-2xl p-6"
-          >
-            <h2 className="text-lg font-serif text-foreground mb-4">Complete Entry</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Choose where to save this word:
-            </p>
-
-            <div className="space-y-3 mb-6">
-              {(["normal", "work", "mutual-arising"] as const).map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setResolveMode(mode)}
-                  className={`w-full p-3 rounded-lg border transition-all ${
-                    resolveMode === mode
-                      ? "bg-primary/15 border-primary/40 text-primary"
-                      : "bg-card/20 border-border/30 text-muted-foreground hover:border-border/60"
-                  }`}
-                >
-                  {mode === "normal" && "Normal Collection"}
-                  {mode === "work" && "Work Mode"}
-                  {mode === "mutual-arising" && "Mutual-Arising"}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSelectedWordId(null)}
-                className="flex-1 py-2 rounded-lg border border-border/30 text-muted-foreground
-                  hover:bg-card/40 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => resolveMutation.mutate(selectedWordId)}
-                disabled={resolveMutation.isPending}
-                className="flex-1 py-2 rounded-lg bg-primary/15 text-primary border border-primary/25
-                  hover:bg-primary/25 transition-colors disabled:opacity-50"
-              >
-                {resolveMutation.isPending ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </motion.div>
         </motion.div>
       )}
 
