@@ -64,12 +64,29 @@ function MiniDial({ value, color, label }: { value: number; color: string; label
   );
 }
 
+function highlightWordInContext(context: string, word: string, windowSize: number = 30) {
+  if (!context || !word) return null;
+  const lowerContext = context.toLowerCase();
+  const lowerWord = word.toLowerCase();
+  const index = lowerContext.indexOf(lowerWord);
+  if (index === -1) return null;
+  const start = Math.max(0, index - windowSize);
+  const end = Math.min(context.length, index + word.length + windowSize);
+  const before = context.substring(start, index);
+  const highlighted = context.substring(index, index + word.length);
+  const after = context.substring(index + word.length, end);
+  const hasEllipsisBefore = start > 0;
+  const hasEllipsisAfter = end < context.length;
+  return { before, highlighted, after, hasEllipsisBefore, hasEllipsisAfter };
+}
+
 const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ word, onClick, animateEntry = false, index = 0, onLanguageClick, onTagClick }, _ref) {
   const [isPlucked, setIsPlucked] = useState(false);
   const tags: string[] = (() => {
     try { return JSON.parse(word.tags || "[]"); }
     catch { return []; }
   })();
+  const contextHighlight = word.context ? highlightWordInContext(word.context, word.word) : null;
 
   const handleClick = () => {
     setIsPlucked(true);
@@ -179,10 +196,22 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
         </div>
       )}
 
-      {/* Context */}
+      {/* Context with highlighted word */}
       {word.context && (
-        <p className="mt-2 text-xs italic line-clamp-1" style={{ color: '#7bbfbb' }}>
-          "{word.context}"
+        <p className="mt-2 text-xs italic" style={{ color: '#7bbfbb' }}>
+          "{contextHighlight ? (
+            <>
+              {contextHighlight.hasEllipsisBefore && <span>…</span>}
+              {contextHighlight.before}
+              <span className="font-semibold px-0.5 rounded" style={{ backgroundColor: 'rgba(79,184,163,0.3)', color: '#4fb8a3' }}>
+                {contextHighlight.highlighted}
+              </span>
+              {contextHighlight.after}
+              {contextHighlight.hasEllipsisAfter && <span>…</span>}
+            </>
+          ) : (
+            <span className="line-clamp-1">{word.context}</span>
+          )}"
         </p>
       )}
     </motion.div>
