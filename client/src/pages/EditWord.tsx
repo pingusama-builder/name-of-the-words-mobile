@@ -47,6 +47,11 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
   const [pairedMeaning, setPairedMeaning] = useState(word.pairedMeaning || "");
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Queued word completion flow
+  const [isQueued, setIsQueued] = useState(!!word.isQueued);
+  const [showQueuedModeSelect, setShowQueuedModeSelect] = useState(false);
+  const [queuedModeChoice, setQueuedModeChoice] = useState<'normal' | 'work' | 'mutual-arising'>('normal');
+
   // Source / location fields — pre-filled from existing word
   const [source, setSource] = useState(word.source || "");
   const [location, setLocation] = useState(word.location || "");
@@ -113,7 +118,8 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
         location: location.trim() || null,
         locationOrder,
         isWork: isWorkMode ? 1 : 0,
-        sourceMode,
+        sourceMode: isQueued ? queuedModeChoice : sourceMode,
+        isQueued: 0,
       });
       return res.json() as Promise<Word>;
     },
@@ -135,6 +141,17 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
 
   const handleSave = () => {
     if (!wordText.trim()) return;
+    if (isQueued) {
+      setShowQueuedModeSelect(true);
+      return;
+    }
+    const finalTags = [...selectedTags];
+    const pending = tagInput.trim();
+    if (pending && !finalTags.includes(pending)) finalTags.push(pending);
+    mutation.mutate(finalTags);
+  };
+
+  const handleQueuedSave = () => {
     const finalTags = [...selectedTags];
     const pending = tagInput.trim();
     if (pending && !finalTags.includes(pending)) finalTags.push(pending);
@@ -520,6 +537,65 @@ export default function EditWord({ word, onClose, onSaved }: EditWordProps) {
           )}
         </div>
       </motion.div>
+
+      {/* Queued word mode selection dialog */}
+      <AnimatePresence>
+        {showQueuedModeSelect && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setShowQueuedModeSelect(false)}
+            />
+            <motion.div
+              className="relative bg-card border border-border/50 rounded-xl p-6 max-w-sm mx-4 shadow-xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <h3 className="text-sm font-medium text-foreground mb-2">Complete Queued Entry</h3>
+              <p className="text-xs text-muted-foreground/80 mb-4">
+                Choose which collection this word belongs to:
+              </p>
+              <div className="space-y-2 mb-6">
+                {(['normal', 'work', 'mutual-arising'] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setQueuedModeChoice(mode)}
+                    className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                      queuedModeChoice === mode
+                        ? 'bg-primary/15 border-primary/30 text-primary'
+                        : 'bg-card/40 border-border/30 text-muted-foreground hover:bg-card/60'
+                    }`}
+                  >
+                    <span className="text-sm font-medium capitalize">
+                      {mode === 'mutual-arising' ? 'Mutual-Arising' : mode === 'work' ? 'Work Mode' : 'Normal Collection'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowQueuedModeSelect(false)}
+                  className="flex-1 px-3 py-2 rounded-lg bg-card/40 border border-border/30 text-sm text-muted-foreground hover:bg-card/60 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleQueuedSave}
+                  className="flex-1 px-3 py-2 rounded-lg bg-primary/15 border border-primary/30 text-sm text-primary hover:bg-primary/25 transition-colors"
+                >
+                  Complete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Migration confirmation dialog */}
       <AnimatePresence>
