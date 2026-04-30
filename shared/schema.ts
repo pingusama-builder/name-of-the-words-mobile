@@ -23,6 +23,7 @@ export const words = mysqlTable("words", {
   locationOrder: int("location_order"), // auto-extracted integer from location for sorting
   isWork: int("is_work").default(0), // 0 = aesthetic mode, 1 = work mode
   sourceMode: varchar("source_mode", { length: 32 }).default("normal"), // "normal" | "work" | "mutual-arising"
+  isQueued: int("is_queued").default(0), // 0 = completed, 1 = queued for exploration
 });
 
 export const insertWordSchema = createInsertSchema(words).omit({

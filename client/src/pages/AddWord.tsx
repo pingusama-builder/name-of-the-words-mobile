@@ -137,6 +137,42 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
     mutation.mutate(finalTags);
   };
 
+  const handleQuickSave = () => {
+    if (!word.trim()) return;
+    
+    // Quick save: only word is required, everything else optional
+    const now = new Date();
+    const dateAdded = now.toLocaleDateString('en-CA');
+    
+    apiRequest("POST", "/api/words", {
+      word: word.trim(),
+      originLanguage,
+      meaning: null,
+      context: null,
+      ratingEssence: 0,
+      ratingBeauty: 0,
+      ratingSubtlety: 0,
+      tags: [],
+      pairedWord: null,
+      pairedMeaning: null,
+      dateAdded,
+      createdAt: now.toISOString(),
+      source: null,
+      location: null,
+      locationOrder: null,
+      isWork: 0,
+      sourceMode: "normal",
+      isQueued: 1, // Mark as queued
+    }).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['/api/words'] });
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onComplete();
+      }, 2800);
+    });
+  };
+
   const languages = [
     { value: "cantonese", label: "粵" },
     { value: "mandarin", label: "中" },
@@ -518,6 +554,19 @@ export default function AddWord({ onComplete, isWorkMode = false }: AddWordProps
           Mutual-Arising (visible in all modes)
         </label>
       </div>
+
+      {/* Quick Save button (for queue) */}
+      <button
+        onClick={handleQuickSave}
+        disabled={!word.trim()}
+        className="w-full py-2 rounded-lg bg-amber-500/10 text-amber-600/80 border border-amber-500/20
+          font-medium text-xs transition-all duration-300 mb-3
+          hover:bg-amber-500/15 hover:border-amber-500/40
+          disabled:opacity-30 disabled:cursor-not-allowed"
+        data-testid="btn-quick-save"
+      >
+        Quick Save to Queue
+      </button>
 
       {/* Save button */}
       <button

@@ -1,0 +1,1 @@
+ALTER TABLE `words` ADD `is_queued` int DEFAULT 0;

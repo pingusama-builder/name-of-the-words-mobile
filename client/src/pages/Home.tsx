@@ -10,13 +10,14 @@ import TagCloud from "@/pages/TagCloud";
 import AddWord from "@/pages/AddWord";
 import WordDetail from "@/pages/WordDetail";
 import SourcesView from "@/pages/SourcesView";
+import QueueView from "@/pages/QueueView";
 import ExportImport from "@/components/ExportImport";
 import ViewErrorBoundary from "@/components/ViewErrorBoundary";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useWorkMode } from "@/contexts/WorkModeContext";
 
-type View = "collection" | "calendar" | "tags" | "add" | "sources";
+type View = "collection" | "calendar" | "tags" | "add" | "sources" | "queue";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -673,6 +674,14 @@ export default function Home() {
               </ViewErrorBoundary>
             </motion.div>
           )}
+
+          {currentView === "queue" && (
+            <motion.div key="queue" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+              <ViewErrorBoundary viewName="Queue">
+                <QueueView />
+              </ViewErrorBoundary>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -890,6 +899,19 @@ export default function Home() {
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M4 3h5.5c1 0 1.5.5 1.5 1.5v11c0-1-0.5-1.5-1.5-1.5H4V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
               <path d="M16 3h-5.5c-1 0-1.5.5-1.5 1.5v11c0-1 0.5-1.5 1.5-1.5H16V3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => setCurrentView("queue")}
+            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "queue" ? activeColor : "text-muted-foreground"}`}
+            data-testid="nav-queue" aria-label="To Be Explored"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <rect x="3" y="3" width="14" height="2" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
+              <rect x="3" y="7" width="14" height="2" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
+              <rect x="3" y="11" width="14" height="2" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
+              <rect x="3" y="15" width="10" height="2" rx="0.5" stroke="currentColor" strokeWidth="1.2" />
             </svg>
           </button>
               </>
