@@ -196,14 +196,14 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(function WordCard({ w
         </div>
       )}
 
-      {/* Context with highlighted word */}
+      {/* Context with highlighted word (gold fill) */}
       {word.context && (
         <p className="mt-2 text-xs italic" style={{ color: '#7bbfbb' }}>
           "{contextHighlight ? (
             <>
               {contextHighlight.hasEllipsisBefore && <span>…</span>}
               {contextHighlight.before}
-              <span className="font-semibold px-0.5 rounded" style={{ backgroundColor: 'rgba(79,184,163,0.3)', color: '#4fb8a3' }}>
+              <span className="font-semibold px-1 rounded" style={{ backgroundColor: 'rgba(232,175,52,0.2)', color: '#e8af34' }}>
                 {contextHighlight.highlighted}
               </span>
               {contextHighlight.after}
