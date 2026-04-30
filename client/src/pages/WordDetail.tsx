@@ -13,6 +13,18 @@ interface WordDetailProps {
   onClose: () => void;
 }
 
+function highlightWordInContext(context: string, word: string) {
+  if (!context || !word) return null;
+  const lowerContext = context.toLowerCase();
+  const lowerWord = word.toLowerCase();
+  const index = lowerContext.indexOf(lowerWord);
+  if (index === -1) return null;
+  const before = context.substring(0, index);
+  const highlighted = context.substring(index, index + word.length);
+  const after = context.substring(index + word.length);
+  return { before, highlighted, after };
+}
+
 const LANG_LABELS: Record<string, string> = {
   cantonese: "Cantonese 粵語",
   mandarin: "Mandarin 普通話",
@@ -158,13 +170,28 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
               </div>
             )}
 
-            {/* Context */}
-            {currentWord.context && (
-              <div className="mb-5">
-                <p className="text-xs text-muted-foreground/50 mb-1 uppercase tracking-wider">Context</p>
-                <p className="text-sm text-foreground/60 italic">"{currentWord.context}"</p>
-              </div>
-            )}
+            {/* Context with gold highlight */}
+            {currentWord.context && (() => {
+              const contextHighlight = highlightWordInContext(currentWord.context, currentWord.word);
+              return (
+                <div className="mb-5">
+                  <p className="text-xs text-muted-foreground/50 mb-1 uppercase tracking-wider">Context</p>
+                  <p className="text-sm text-foreground/60 italic">
+                    "{contextHighlight ? (
+                      <>
+                        {contextHighlight.before}
+                        <span className="font-semibold px-1 rounded" style={{ backgroundColor: 'rgba(232,175,52,0.2)', color: '#e8af34' }}>
+                          {contextHighlight.highlighted}
+                        </span>
+                        {contextHighlight.after}
+                      </>
+                    ) : (
+                      currentWord.context
+                    )}"
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Rating dials — read-only display */}
             <div className="flex justify-around mb-5 py-2">
