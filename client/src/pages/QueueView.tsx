@@ -4,7 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest } from "@/lib/queryClient";
 import type { Word } from "@shared/schema";
 
-export default function QueueView() {
+interface QueueViewProps {
+  onWordSelect?: (word: Word) => void;
+}
+
+export default function QueueView({ onWordSelect }: QueueViewProps) {
   const queryClient = useQueryClient();
   const [selectMode, setSelectMode] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<Set<number>>(new Set());
@@ -108,8 +112,8 @@ export default function QueueView() {
                 if (selectMode) {
                   handleToggleSelect(word.id);
                 } else {
-                  // Navigate back to collection view and open the word
-                  window.location.hash = `/home?wordId=${word.id}`;
+                  // Open word in WordDetail via callback
+                  onWordSelect?.(word);
                 }
               }}
               className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${

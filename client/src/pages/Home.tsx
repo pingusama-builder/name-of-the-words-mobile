@@ -87,22 +87,6 @@ export default function Home() {
     }
   }, []);
 
-  // Handle wordId URL parameter (from QueueView)
-  useEffect(() => {
-    const hash = window.location.hash;
-    const match = hash.match(/wordId=(\d+)/);
-    if (match) {
-      const wordId = parseInt(match[1], 10);
-      const word = words.find(w => w.id === wordId);
-      if (word) {
-        setSelectedWord(word);
-        setCurrentView('collection');
-        // Clear the URL parameter
-        window.location.hash = '/home';
-      }
-    }
-  }, [words]);
-
   // Close user menu when clicking outside
   useEffect(() => {
     if (!showUserMenu) return;
@@ -694,7 +678,7 @@ export default function Home() {
           {currentView === "queue" && (
             <motion.div key="queue" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <ViewErrorBoundary viewName="Queue">
-                <QueueView />
+                <QueueView onWordSelect={(word) => { setSelectedWord(word); setCurrentView('collection'); }} />
               </ViewErrorBoundary>
             </motion.div>
           )}
