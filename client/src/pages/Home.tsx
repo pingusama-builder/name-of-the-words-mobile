@@ -678,7 +678,7 @@ export default function Home() {
           {currentView === "queue" && (
             <motion.div key="queue" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <ViewErrorBoundary viewName="Queue">
-                <QueueView onWordSelect={(word) => { setSelectedWord(word); setCurrentView('collection'); }} />
+                <QueueView onWordSelect={(word) => { console.log('Home: onWordSelect callback called with word:', word); setSelectedWord(word); setCurrentView('collection'); }} />
               </ViewErrorBoundary>
             </motion.div>
           )}

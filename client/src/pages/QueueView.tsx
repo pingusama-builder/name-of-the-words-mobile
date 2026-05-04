@@ -113,6 +113,7 @@ export default function QueueView({ onWordSelect }: QueueViewProps) {
                   handleToggleSelect(word.id);
                 } else {
                   // Open word in WordDetail via callback
+                  console.log('QueueView: Calling onWordSelect with word:', word);
                   onWordSelect?.(word);
                 }
               }}
