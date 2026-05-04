@@ -97,19 +97,30 @@ export default function IdeaNetworkDetail({
       exit={{ y: "100%" }}
       className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-lg max-h-[90vh] overflow-y-auto"
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-serif font-bold text-foreground">
+      {/* Header with back button */}
+      <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center gap-3 justify-between">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onClose}
+          className="h-8 w-8 p-0 flex-shrink-0"
+          title="Back"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground">
+            <path d="M10 2L4 8l6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-serif font-bold text-foreground truncate">
             {network.title}
           </h3>
           {network.description && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1 truncate">
               {network.description}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             size="sm"
             variant="outline"
@@ -117,14 +128,6 @@ export default function IdeaNetworkDetail({
             className="text-xs"
           >
             {showGraph ? "List" : "Graph"}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
-          >
-            <X className="w-4 h-4" />
           </Button>
         </div>
       </div>

@@ -110,8 +110,19 @@ export default function PrimaryIdeaDetail({
       exit={{ y: "100%" }}
       className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-lg max-h-[90vh] overflow-y-auto"
     >
-      {/* Header */}
-      <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between">
+      {/* Header with back button */}
+      <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center gap-3">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onClose}
+          className="h-8 w-8 p-0 flex-shrink-0"
+          title="Back"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-muted-foreground">
+            <path d="M10 2L4 8l6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Button>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div
             className="w-4 h-4 rounded-full flex-shrink-0"
@@ -128,14 +139,6 @@ export default function PrimaryIdeaDetail({
             )}
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onClose}
-          className="h-8 w-8 p-0 flex-shrink-0"
-        >
-          <X className="w-4 h-4" />
-        </Button>
       </div>
 
       <div className="p-4 space-y-4">

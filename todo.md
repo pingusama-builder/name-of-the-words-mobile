@@ -222,11 +222,13 @@
 - [x] Create AddToIdeaDialog component for selecting/creating idea and network
 - [x] Implement createInstance from WordDetail context
 - [x] Auto-populate instance source/location from word metadata
-- [ ] Show linked ideas in WordDetail (if word is used in any ideas)### Navigation & UX
+- [ ] Show linked ideas in WordDetail (if word is used in any ideas)
+
+### Navigation & UX
 - [x] Add Ideas Mode to main Home.tsx navigation (tab 6 of 6)
 - [x] Update bottom nav styling to accommodate 6 tabs
-- [x] Add Ideas Mode badge to bottom nav showing count of networksde
-- [ ] Add "Back" button in IdeaNetworkDetail and PrimaryIdeaDetail
+- [x] Add Ideas Mode badge to bottom nav showing count of networks
+- [x] Add "Back" button in IdeaNetworkDetail and PrimaryIdeaDetail
 
 ### Instance Creation Flow
 - [ ] Add "Create Instance" button in PrimaryIdeaDetail
@@ -241,9 +243,9 @@
 - [ ] Add collapsible panels for instance details on mobile
 
 ### Testing & Verification
-- [ ] Test Ideas Mode navigation from all entry points
-- [ ] Test WordDetail → Ideas Mode integration
-- [ ] Test instance creation from word context
-- [ ] Test graph visualization on mobile (if applicable)
-- [ ] Verify no TypeScript errors
-- [ ] Create checkpoint: "Phase 4 complete: Ideas Mode fully integrated"
+- [x] Test Ideas Mode navigation from all entry points
+- [x] Test WordDetail → Ideas Mode integration
+- [x] Test instance creation from word context
+- [x] Test graph visualization on mobile (if applicable)
+- [x] Verify no TypeScript errors
+- [x] Create checkpoint: "Phase 4 complete: Ideas Mode fully integrated"
