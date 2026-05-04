@@ -3,15 +3,17 @@
  * View and manage ideas within a network, add instances, and create connections
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Edit2, Trash2, Link2 } from "lucide-react";
+import { Plus, X, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import IdeaNetworkGraph from "@/components/IdeaNetworkGraph";
+import ConnectionDetail from "@/pages/ConnectionDetail";
 
 interface IdeaNetworkDetailProps {
   networkId: number;
@@ -25,7 +27,8 @@ export default function IdeaNetworkDetail({
   const [showAddIdea, setShowAddIdea] = useState(false);
   const [newIdeaTerm, setNewIdeaTerm] = useState("");
   const [selectedIdeaId, setSelectedIdeaId] = useState<number | null>(null);
-  const [showInstanceDetail, setShowInstanceDetail] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
+  const [showConnectionForm, setShowConnectionForm] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -35,8 +38,7 @@ export default function IdeaNetworkDetail({
 
   // Create primary idea mutation
   const createIdeaMutation = trpc.ideas.createPrimary.useMutation({
-    onSuccess: (newIdea) => {
-      // Invalidate to refresh network details
+    onSuccess: () => {
       invalidateNetwork();
       setNewIdeaTerm("");
       setShowAddIdea(false);
@@ -107,99 +109,155 @@ export default function IdeaNetworkDetail({
             </p>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onClose}
-          className="h-8 w-8 p-0"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-
-      <div className="p-4 space-y-6">
-        {/* Ideas Section */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-semibold text-foreground">Key Ideas</h4>
+        <div className="flex items-center gap-2">
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setShowAddIdea(true)}
-            className="gap-2"
+            onClick={() => setShowGraph(!showGraph)}
+            className="text-xs"
           >
-            <Plus className="w-3 h-3" />
-            Add
+            {showGraph ? "List" : "Graph"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="w-4 h-4" />
           </Button>
         </div>
+      </div>
 
-        {ideas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No ideas yet</p>
-        ) : (
-          <div className="space-y-2">
-            {ideas.map((idea: any) => (
-              <Card
-                key={idea.id}
-                className="p-3 cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => setSelectedIdeaId(idea.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: idea?.color || "#999" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">
-                      {idea?.term || "Unknown"}
-                    </p>
-                    {idea?.isCentral && (
-                      <p className="text-xs text-accent font-semibold">
-                        Central Thesis
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {(instances && instances[idea?.id])?.length || 0} instances
-                  </span>
+      <div className="p-4 space-y-6">
+        {/* Graph View */}
+        {showGraph && (
+          <div className="space-y-4">
+            <IdeaNetworkGraph
+              ideas={ideas.map((idea: any) => ({
+                ...idea,
+                color: idea.color || "#999",
+              }))}
+              connections={connections.map((conn: any) => ({
+                source: conn.ideaPrimaryIdA,
+                target: conn.ideaPrimaryIdB,
+                type: conn.connectionType || "related",
+                description: conn.description,
+              }))}
+              onNodeClick={(ideaId) => {
+                setSelectedIdeaId(ideaId);
+              }}
+              height={300}
+            />
+            <Button
+              onClick={() => setShowConnectionForm(true)}
+              className="w-full"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Connection
+            </Button>
+          </div>
+        )}
+
+        {/* List View */}
+        {!showGraph && (
+          <>
+            {/* Ideas Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-foreground">Key Ideas</h4>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowAddIdea(true)}
+                  className="gap-2"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add
+                </Button>
+              </div>
+
+              {ideas.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No ideas yet</p>
+              ) : (
+                <div className="space-y-2">
+                  {ideas.map((idea: any) => (
+                    <Card
+                      key={idea.id}
+                      className="p-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => setSelectedIdeaId(idea.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: idea?.color || "#999" }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">
+                            {idea?.term || "Unknown"}
+                          </p>
+                          {idea?.isCentral && (
+                            <p className="text-xs text-accent font-semibold">
+                              Central Thesis
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {(instances && instances[idea?.id])?.length || 0} instances
+                        </span>
+                      </div>
+                    </Card>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
+              )}
+            </div>
+
+            {/* Connections Section */}
+            {connections.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-foreground mb-3">Relationships</h4>
+                <div className="space-y-2">
+                  {connections.map((conn: any) => (
+                    <Card key={conn.id} className="p-3">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium text-foreground truncate">
+                          {ideas.find((i: any) => i.id === conn.ideaPrimaryIdA)
+                            ?.term || "Unknown"}
+                        </span>
+                        <Link2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs text-accent uppercase font-semibold flex-shrink-0">
+                          {conn.connectionType}
+                        </span>
+                        <span className="font-medium text-foreground truncate">
+                          {ideas.find((i: any) => i.id === conn.ideaPrimaryIdB)
+                            ?.term || "Unknown"}
+                        </span>
+                      </div>
+                      {conn.description && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {conn.description}
+                        </p>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-        {/* Connections Section */}
-        {connections.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Relationships</h4>
-            <div className="space-y-2">
-              {connections.map((conn: any) => (
-                <Card key={conn.id} className="p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-medium text-foreground truncate">
-                      {ideas.find((i: any) => i.id === conn.ideaPrimaryIdA)
-                        ?.term || "Unknown"}
-                    </span>
-                    <Link2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                    <span className="text-xs text-accent uppercase font-semibold flex-shrink-0">
-                      {conn.connectionType}
-                    </span>
-                    <span className="font-medium text-foreground truncate">
-                      {ideas.find((i: any) => i.id === conn.ideaPrimaryIdB)
-                        ?.term || "Unknown"}
-                    </span>
-                  </div>
-                  {conn.description && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {conn.description}
-                    </p>
-                  )}
-                </Card>
-              ))}
-            </div>
-          </div>
+      {/* Connection Form */}
+      <AnimatePresence>
+        {showConnectionForm && (
+          <ConnectionDetail
+            networkId={networkId}
+            ideas={ideas}
+            onClose={() => setShowConnectionForm(false)}
+          />
         )}
-      </div>
+      </AnimatePresence>
 
       {/* Add Idea Sheet */}
       <AnimatePresence>
