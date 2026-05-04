@@ -41,3 +41,67 @@ export const tags = mysqlTable("tags", {
 export const insertTagSchema = createInsertSchema(tags).omit({ id: true });
 export type InsertTag = z.infer<typeof insertTagSchema>;
 export type Tag = typeof tags.$inferSelect;
+
+// Ideas Mode enums and types
+export const CONNECTION_TYPES = ["contrast", "supports", "contradicts", "precedes", "enables"] as const;
+export type ConnectionType = (typeof CONNECTION_TYPES)[number];
+
+// Ideas Mode types (re-exported from drizzle/schema.ts for convenience)
+export type IdeaPrimary = {
+  id: number;
+  userId: string;
+  term: string;
+  description: string | null;
+  originLanguage: string | null;
+  createdAt: string;
+  updatedAt: string;
+  color: string | null;
+  primarySource: string | null;
+  posX: number | null;
+  posY: number | null;
+};
+
+export type IdeaInstance = {
+  id: number;
+  ideaPrimaryId: number;
+  userId: string;
+  wordId: number | null;
+  context: string;
+  source: string | null;
+  location: string | null;
+  locationOrder: number | null;
+  meaning: string | null;
+  interpretation: string | null;
+  dateEncountered: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IdeaConnection = {
+  id: number;
+  userId: string;
+  ideaPrimaryIdA: number;
+  ideaPrimaryIdB: number;
+  connectionType: string | null;
+  description: string | null;
+  strength: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IdeaNetwork = {
+  id: number;
+  userId: string;
+  title: string;
+  description: string | null;
+  primarySource: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type IdeaNetworkPrimary = {
+  id: number;
+  networkId: number;
+  ideaPrimaryId: number;
+  isCentral: number;
+};

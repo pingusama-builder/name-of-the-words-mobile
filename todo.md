@@ -107,85 +107,85 @@
 ## Ideas Mode — Phase 1: Core Data Model & API
 
 ### Database Schema (Drizzle Migrations)
-- [ ] Add `idea_primaries` table to drizzle/schema.ts (id, userId, term, description, originLanguage, createdAt, updatedAt, color, primarySource, posX, posY)
-- [ ] Add `idea_instances` table to drizzle/schema.ts (id, ideaPrimaryId, userId, wordId, context, source, location, locationOrder, meaning, interpretation, dateEncountered, createdAt, updatedAt)
-- [ ] Add `idea_connections` table to drizzle/schema.ts (id, userId, ideaPrimaryIdA, ideaPrimaryIdB, connectionType, description, strength, createdAt, updatedAt) with CHECK constraint (A < B)
-- [ ] Add `idea_networks` table to drizzle/schema.ts (id, userId, title, description, primarySource, createdAt, updatedAt)
-- [ ] Add `idea_network_primaries` junction table to drizzle/schema.ts (id, networkId, ideaPrimaryId, isCentral) with proper foreign keys and indexes
-- [ ] Run `pnpm db:push` to apply migrations to MySQL
+- [x] Add `idea_primaries` table to drizzle/schema.ts (id, userId, term, description, originLanguage, createdAt, updatedAt, color, primarySource, posX, posY)
+- [x] Add `idea_instances` table to drizzle/schema.ts (id, ideaPrimaryId, userId, wordId, context, source, location, locationOrder, meaning, interpretation, dateEncountered, createdAt, updatedAt)
+- [x] Add `idea_connections` table to drizzle/schema.ts (id, userId, ideaPrimaryIdA, ideaPrimaryIdB, connectionType, description, strength, createdAt, updatedAt) with CHECK constraint (A < B)
+- [x] Add `idea_networks` table to drizzle/schema.ts (id, userId, title, description, primarySource, createdAt, updatedAt)
+- [x] Add `idea_network_primaries` junction table to drizzle/schema.ts (id, networkId, ideaPrimaryId, isCentral) with proper foreign keys and indexes
+- [x] Run `pnpm db:push` to apply migrations to MySQL
 
 ### Type Definitions
-- [ ] Add IdeaPrimary, IdeaInstance, IdeaConnection, IdeaNetwork, IdeaNetworkPrimary types to shared/schema.ts
-- [ ] Add CONNECTION_TYPES enum to shared/schema.ts (contrast, supports, contradicts, precedes, enables)
+- [x] Add IdeaPrimary, IdeaInstance, IdeaConnection, IdeaNetwork, IdeaNetworkPrimary types to shared/schema.ts
+- [x] Add CONNECTION_TYPES enum to shared/schema.ts (contrast, supports, contradicts, precedes, enables)
 
 ### Utility Functions
-- [ ] Create shared/utils.ts with extractLocationOrder(location: string) function (handles "p. 42", "Ch. 4", timestamps, etc.)
-- [ ] Add generateUniqueColor() utility to server/utils.ts for auto-generating idea colors
+- [x] Create shared/utils.ts with extractLocationOrder(location: string) function (handles "p. 42", "Ch. 4", timestamps, etc.)
+- [x] Add generateUniqueColor() utility to server/utils.ts for auto-generating idea colors
 
-### Storage Layer (`server/storage.ts`)
-- [ ] Extend IStorage interface with idea methods (createPrimaryIdea, getPrimaryIdea, getAllPrimaryIdeas, updatePrimaryIdea, deletePrimaryIdea)
-- [ ] Extend IStorage interface with instance methods (createInstance, getInstancesByPrimaryIdea, updateInstance, deleteInstance)
-- [ ] Extend IStorage interface with connection methods (createConnection, getConnectionsForIdea, updateConnection, deleteConnection)
-- [ ] Extend IStorage interface with network methods (createNetwork, getNetwork, getAllNetworks, updateNetwork, deleteNetwork, getNetworkWithDetails)
-- [ ] Extend IStorage interface with setCentralIdea(networkId, ideaPrimaryId, userId, isCentral) method
-- [ ] Implement all storage methods with user isolation (userId filter on all queries)
-- [ ] Implement connection normalization (always store smaller ID in ideaPrimaryIdA)
-- [ ] Implement location order auto-extraction in createInstance and updateInstance
-- [ ] Implement word ownership validation in createInstance (guard against cross-user wordId references)
-- [ ] Implement setCentralIdea with network ownership check and junction row validation
+### Storage Layer (`server/storage.ideas.ts`)
+- [x] Extend IStorage interface with idea methods (createPrimaryIdea, getPrimaryIdea, getAllPrimaryIdeas, updatePrimaryIdea, deletePrimaryIdea)
+- [x] Extend IStorage interface with instance methods (createInstance, getInstancesByPrimaryIdea, updateInstance, deleteInstance)
+- [x] Extend IStorage interface with connection methods (createConnection, getConnectionsForIdea, updateConnection, deleteConnection)
+- [x] Extend IStorage interface with network methods (createNetwork, getNetwork, getAllNetworks, updateNetwork, deleteNetwork, getNetworkWithDetails)
+- [x] Extend IStorage interface with setCentralIdea(networkId, ideaPrimaryId, userId, isCentral) method
+- [x] Implement all storage methods with user isolation (userId filter on all queries)
+- [x] Implement connection normalization (always store smaller ID in ideaPrimaryIdA)
+- [x] Implement location order auto-extraction in createInstance and updateInstance
+- [x] Implement word ownership validation in createInstance (guard against cross-user wordId references)
+- [x] Implement setCentralIdea with network ownership check and junction row validation
 
 ### API Procedures (`server/routers/ideas.ts`)
-- [ ] Create new file server/routers/ideas.ts with ideaRouter
-- [ ] Implement createPrimary procedure with Zod validation
-- [ ] Implement getPrimary procedure
-- [ ] Implement listPrimaries procedure
-- [ ] Implement updatePrimary procedure
-- [ ] Implement deletePrimary procedure
-- [ ] Implement createInstance procedure with ISO date validation (YYYY-MM-DD) and wordId ownership check
-- [ ] Implement getInstancesByIdea procedure
-- [ ] Implement updateInstance procedure (includes source, location, dateEncountered fields)
-- [ ] Implement deleteInstance procedure
-- [ ] Implement createConnection procedure with connection type enum validation and normalization
-- [ ] Implement getConnectionsForIdea procedure (queries both ideaPrimaryIdA and B)
-- [ ] Implement updateConnection procedure
-- [ ] Implement deleteConnection procedure
-- [ ] Implement createNetwork procedure (accepts optional centralIdeaIds)
-- [ ] Implement getNetwork procedure
-- [ ] Implement listNetworks procedure
-- [ ] Implement getNetworkWithDetails procedure (returns ideas with isCentral flag attached)
-- [ ] Implement updateNetwork procedure
-- [ ] Implement deleteNetwork procedure
-- [ ] Implement setCentral procedure (toggle centrality with authorization checks)
-- [ ] Register ideaRouter in server/routers.ts (append to appRouter)
+- [x] Create new file server/routers/ideas.ts with ideaRouter
+- [x] Implement createPrimary procedure with Zod validation
+- [x] Implement getPrimary procedure
+- [x] Implement listPrimaries procedure
+- [x] Implement updatePrimary procedure
+- [x] Implement deletePrimary procedure
+- [x] Implement createInstance procedure with ISO date validation (YYYY-MM-DD) and wordId ownership check
+- [x] Implement getInstancesByIdea procedure
+- [x] Implement updateInstance procedure (includes source, location, dateEncountered fields)
+- [x] Implement deleteInstance procedure
+- [x] Implement createConnection procedure with connection type enum validation and normalization
+- [x] Implement getConnectionsForIdea procedure (queries both ideaPrimaryIdA and B)
+- [x] Implement updateConnection procedure
+- [x] Implement deleteConnection procedure
+- [x] Implement createNetwork procedure (accepts optional centralIdeaIds)
+- [x] Implement getNetwork procedure
+- [x] Implement listNetworks procedure
+- [x] Implement getNetworkWithDetails procedure (returns ideas with isCentral flag attached)
+- [x] Implement updateNetwork procedure
+- [x] Implement deleteNetwork procedure
+- [x] Implement setCentral procedure (toggle centrality with authorization checks)
+- [x] Register ideaRouter in server/routers.ts (append to appRouter)
 
 ### Testing (`server/storage.ideas.test.ts`)
-- [ ] Create server/storage.ideas.test.ts test file
-- [ ] Test createPrimaryIdea (auto-generated color, user isolation)
-- [ ] Test getPrimaryIdea (respects user isolation)
-- [ ] Test getAllPrimaryIdeas (returns only user's ideas)
-- [ ] Test updatePrimaryIdea (ownership check)
-- [ ] Test deletePrimaryIdea (cascades to instances and connections)
-- [ ] Test createInstance (auto-extracts locationOrder, validates wordId ownership, validates dateEncountered format)
-- [ ] Test getInstancesByPrimaryIdea (returns all instances for an idea)
-- [ ] Test updateInstance (can edit all fields including source/location/dateEncountered)
-- [ ] Test deleteInstance
-- [ ] Test createConnection (normalizes direction A < B, prevents self-connections)
-- [ ] Test createConnection (prevents duplicate edges when inserting in reverse order)
-- [ ] Test getConnectionsForIdea (queries both directions, Issue 7)
-- [ ] Test updateConnection
-- [ ] Test deleteConnection
-- [ ] Test createNetwork (creates junction records, marks centralIdeaIds correctly)
-- [ ] Test getNetworkWithDetails (returns ideas with isCentral flag)
-- [ ] Test updateNetwork (can add/remove ideas)
-- [ ] Test deleteNetwork (cascades via junction table)
-- [ ] Test setCentralIdea (toggles centrality, rejects unauthorized user, validates junction exists)
-- [ ] Run `pnpm test` and verify all tests pass
+- [x] Create server/storage.ideas.test.ts test file
+- [x] Test createPrimaryIdea (auto-generated color, user isolation)
+- [x] Test getPrimaryIdea (respects user isolation)
+- [x] Test getAllPrimaryIdeas (returns only user's ideas)
+- [x] Test updatePrimaryIdea (ownership check)
+- [x] Test deletePrimaryIdea (cascades to instances and connections)
+- [x] Test createInstance (auto-extracts locationOrder, validates wordId ownership, validates dateEncountered format)
+- [x] Test getInstancesByPrimaryIdea (returns all instances for an idea)
+- [x] Test updateInstance (can edit all fields including source/location/dateEncountered)
+- [x] Test deleteInstance
+- [x] Test createConnection (normalizes direction A < B, prevents self-connections)
+- [x] Test createConnection (prevents duplicate edges when inserting in reverse order)
+- [x] Test getConnectionsForIdea (queries both directions, Issue 7)
+- [x] Test updateConnection
+- [x] Test deleteConnection
+- [x] Test createNetwork (creates junction records, marks centralIdeaIds correctly)
+- [x] Test getNetworkWithDetails (returns ideas with isCentral flag)
+- [x] Test updateNetwork (can add/remove ideas)
+- [x] Test deleteNetwork (cascades via junction table)
+- [x] Test setCentralIdea (toggles centrality, rejects unauthorized user, validates junction exists)
+- [x] Run `pnpm test` and verify all tests pass
 
 ### Verification & Checkpoint
-- [ ] Verify no TypeScript errors: `pnpm tsc --noEmit`
-- [ ] Verify all tests pass: `pnpm test`
-- [ ] Verify database schema is correct: `pnpm db:push` (should show no pending changes)
-- [ ] Create checkpoint: "Phase 1 complete: Ideas Mode core data model and API"
+- [x] Verify no TypeScript errors: `pnpm tsc --noEmit`
+- [x] Verify all tests pass: `pnpm test`
+- [x] Verify database schema is correct: `pnpm db:push` (should show no pending changes)
+- [x] Create checkpoint: "Phase 1 complete: Ideas Mode core data model and API"
 
 
 ## Ideas Mode — Phase 2: Frontend Components (COMPLETE)
