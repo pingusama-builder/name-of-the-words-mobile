@@ -7,6 +7,7 @@ import CircularDial from "@/components/CircularDial";
 import { apiRequest } from "@/lib/queryClient";
 import EditWord from "@/pages/EditWord";
 import SourceDeck from "@/components/SourceDeck";
+import AddToIdeaDialog from "@/components/AddToIdeaDialog";
 
 interface WordDetailProps {
   word: Word;
@@ -39,6 +40,7 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
   const [showEdit, setShowEdit] = useState(false);
   const [currentWord, setCurrentWord] = useState<Word>(word);
   const [showSourceDeck, setShowSourceDeck] = useState(false);
+  const [showAddToIdea, setShowAddToIdea] = useState(false);
 
   const tags: string[] = (() => {
     try { return JSON.parse(currentWord.tags || "[]"); }
@@ -241,6 +243,21 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
               </div>
             )}
 
+            {/* Add to Idea button */}
+            <div className="border-t border-border/20 pt-4 mb-4">
+              <button
+                onClick={() => setShowAddToIdea(true)}
+                className="w-full py-2.5 rounded-xl text-sm text-primary/70 border border-primary/20 bg-primary/5
+                  hover:text-primary hover:bg-primary/10 hover:border-primary/35 transition-all duration-200"
+                data-testid="btn-add-to-idea"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="inline mr-2">
+                  <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                </svg>
+                Add to Idea Network
+              </button>
+            </div>
+
             {/* Delete section */}
             <div className="border-t border-border/20 pt-4">
               {!showDeleteConfirm ? (
@@ -308,6 +325,17 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
           />
         )}
       </AnimatePresence>
+
+      {/* Add to Idea dialog */}
+      <AddToIdeaDialog
+        word={currentWord}
+        isOpen={showAddToIdea}
+        onClose={() => setShowAddToIdea(false)}
+        onSuccess={() => {
+          setShowAddToIdea(false);
+          // Optionally refresh or show success toast
+        }}
+      />
     </>
   );
 }

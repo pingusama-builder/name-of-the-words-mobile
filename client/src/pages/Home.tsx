@@ -17,6 +17,7 @@ import ViewErrorBoundary from "@/components/ViewErrorBoundary";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useWorkMode } from "@/contexts/WorkModeContext";
+import { trpc } from "@/lib/trpc";
 
 type View = "collection" | "calendar" | "tags" | "add" | "sources" | "queue" | "ideas";
 
@@ -43,6 +44,12 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const { isWorkMode, toggle: toggleWorkMode } = useWorkMode();
   const [isMutualMode, setIsMutualMode] = useState(false);
+
+  // Ideas Mode network count
+  const { data: networksData } = trpc.ideas.listNetworks.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const networks = networksData || [];
 
   const modeParam = `isWork=${isWorkMode}`;
 
@@ -926,7 +933,7 @@ export default function Home() {
 
           <button
             onClick={() => setCurrentView("ideas")}
-            className={`flex flex-col items-center gap-1 transition-colors ${currentView === "ideas" ? activeColor : "text-muted-foreground"}`}
+            className={`flex flex-col items-center gap-1 transition-colors relative ${currentView === "ideas" ? activeColor : "text-muted-foreground"}`}
             data-testid="nav-ideas" aria-label="Ideas"
           >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -935,6 +942,11 @@ export default function Home() {
               <circle cx="10" cy="14" r="2.5" stroke="currentColor" strokeWidth="1.2" />
               <path d="M8 7.5l2 5M12 7.5l-2 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
             </svg>
+            {networks.length > 0 && (
+              <span className="absolute -top-1 -right-2 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-semibold">
+                {networks.length > 9 ? "9+" : networks.length}
+              </span>
+            )}
           </button>
               </>
             );

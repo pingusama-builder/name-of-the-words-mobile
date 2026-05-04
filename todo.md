@@ -207,3 +207,43 @@
 - [x] TypeScript compilation successful (zero errors)
 - [x] All components render without runtime errors
 - [x] Navigation between views works correctly
+
+
+## Ideas Mode — Phase 4: Integration & Polish
+
+### Quick-Create & Navigation
+- [ ] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
+- [ ] Add "Create Network" button in IdeaNetworkView header
+- [ ] Add Ideas Mode badge to bottom nav showing count of networks
+- [ ] Add breadcrumb navigation in IdeaNetworkDetail (Network > Idea)
+
+### WordDetail Integration
+- [x] Add "Add to Idea" button in WordDetail component
+- [x] Create AddToIdeaDialog component for selecting/creating idea and network
+- [x] Implement createInstance from WordDetail context
+- [x] Auto-populate instance source/location from word metadata
+- [ ] Show linked ideas in WordDetail (if word is used in any ideas)### Navigation & UX
+- [x] Add Ideas Mode to main Home.tsx navigation (tab 6 of 6)
+- [x] Update bottom nav styling to accommodate 6 tabs
+- [x] Add Ideas Mode badge to bottom nav showing count of networksde
+- [ ] Add "Back" button in IdeaNetworkDetail and PrimaryIdeaDetail
+
+### Instance Creation Flow
+- [ ] Add "Create Instance" button in PrimaryIdeaDetail
+- [ ] Create InstanceForm component with context, source, location, meaning fields
+- [ ] Add word linking in InstanceForm (optional word selection)
+- [ ] Implement bulk instance creation from multiple words
+
+### Mobile UX Polish
+- [ ] Ensure graph visualization is touch-friendly on mobile
+- [ ] Add swipe gestures for navigation (back/forward)
+- [ ] Optimize IdeaNetworkGraph for small screens
+- [ ] Add collapsible panels for instance details on mobile
+
+### Testing & Verification
+- [ ] Test Ideas Mode navigation from all entry points
+- [ ] Test WordDetail → Ideas Mode integration
+- [ ] Test instance creation from word context
+- [ ] Test graph visualization on mobile (if applicable)
+- [ ] Verify no TypeScript errors
+- [ ] Create checkpoint: "Phase 4 complete: Ideas Mode fully integrated"
