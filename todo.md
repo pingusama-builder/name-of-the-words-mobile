@@ -186,3 +186,24 @@
 - [ ] Verify all tests pass: `pnpm test`
 - [ ] Verify database schema is correct: `pnpm db:push` (should show no pending changes)
 - [ ] Create checkpoint: "Phase 1 complete: Ideas Mode core data model and API"
+
+
+## Ideas Mode — Phase 2: Frontend Components (COMPLETE)
+
+### Components Created
+- [x] Create IdeaNetworkView component (list networks, create, delete)
+- [x] Create IdeaNetworkDetail component (view/edit ideas in network)
+- [x] Create PrimaryIdeaDetail component (manage instances of single idea)
+- [x] Create ConnectionDetail component (create connections between ideas)
+- [x] Integrate Ideas Mode into Home.tsx navigation
+
+### Integration
+- [x] Add Ideas Mode as new view in Home.tsx
+- [x] Add Ideas Mode button to bottom navigation bar
+- [x] Wire Ideas Mode view to show/hide with other views
+- [x] Add ViewErrorBoundary around Ideas Mode
+
+### Verification
+- [x] TypeScript compilation successful (zero errors)
+- [x] All components render without runtime errors
+- [x] Navigation between views works correctly
