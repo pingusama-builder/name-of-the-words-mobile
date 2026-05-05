@@ -90,9 +90,21 @@ export default function IdeaNetworkView() {
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <div className="flex-shrink-0 border-b border-border p-4">
-        <h2 className="text-xl font-serif font-bold text-foreground mb-2">
-          Idea Networks
-        </h2>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div>
+            <h2 className="text-xl font-serif font-bold text-foreground">
+              Idea Networks
+            </h2>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setShowCreateSheet(true)}
+            className="gap-2 flex-shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            New
+          </Button>
+        </div>
         <p className="text-sm text-muted-foreground">
           Organize key terms and their relationships
         </p>

@@ -213,16 +213,16 @@
 
 ### Quick-Create & Navigation
 - [ ] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
-- [ ] Add "Create Network" button in IdeaNetworkView header
+- [x] Add "Create Network" button in IdeaNetworkView header
 - [ ] Add Ideas Mode badge to bottom nav showing count of networks
-- [ ] Add breadcrumb navigation in IdeaNetworkDetail (Network > Idea)
+- [x] Add breadcrumb navigation in IdeaNetworkDetail (Network > Idea)
 
 ### WordDetail Integration
 - [x] Add "Add to Idea" button in WordDetail component
 - [x] Create AddToIdeaDialog component for selecting/creating idea and network
 - [x] Implement createInstance from WordDetail context
 - [x] Auto-populate instance source/location from word metadata
-- [ ] Show linked ideas in WordDetail (if word is used in any ideas)
+- [x] Show linked ideas in WordDetail (if word is used in any ideas)
 
 ### Navigation & UX
 - [x] Add Ideas Mode to main Home.tsx navigation (tab 6 of 6)
@@ -231,9 +231,9 @@
 - [x] Add "Back" button in IdeaNetworkDetail and PrimaryIdeaDetail
 
 ### Instance Creation Flow
-- [ ] Add "Create Instance" button in PrimaryIdeaDetail
-- [ ] Create InstanceForm component with context, source, location, meaning fields
-- [ ] Add word linking in InstanceForm (optional word selection)
+- [x] Add "Create Instance" button in PrimaryIdeaDetail
+- [x] Create InstanceForm component with context, source, location, meaning fields
+- [x] Add word linking in InstanceForm (optional word selection)
 - [ ] Implement bulk instance creation from multiple words
 
 ### Mobile UX Polish
@@ -249,3 +249,24 @@
 - [x] Test graph visualization on mobile (if applicable)
 - [x] Verify no TypeScript errors
 - [x] Create checkpoint: "Phase 4 complete: Ideas Mode fully integrated"
+
+
+## Ideas Mode — Phase 5: Full Editing Workflows (COMPLETE)
+
+### Editing Capabilities
+- [x] IdeaNetworkDetail shows PrimaryIdeaDetail when idea is tapped
+- [x] PrimaryIdeaDetail has Edit button for term and description
+- [x] InstanceForm captures all fields (context, location, meaning, interpretation, dateEncountered)
+- [x] Users can edit instances after creation
+- [x] WordDetail shows linked ideas section
+- [x] New tRPC query: ideas.getLinkedIdeasForWord
+- [x] Backend method: storage.getLinkedIdeasForWord
+
+### UI Enhancements
+- [x] "New" button in IdeaNetworkView header for quick network creation
+- [x] Breadcrumb navigation in IdeaNetworkDetail (Networks / Network Title)
+
+### Testing
+- [x] Created ideas.workflows.test.ts with comprehensive tests
+- [x] Tests cover: network CRUD, idea CRUD, instance creation with full fields, linked ideas retrieval
+- [x] All tests passing (13/13 passed)

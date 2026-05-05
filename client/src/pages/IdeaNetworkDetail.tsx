@@ -104,7 +104,7 @@ export default function IdeaNetworkDetail({
       exit={{ y: "100%" }}
       className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-lg max-h-[90vh] overflow-y-auto"
     >
-      {/* Header with back button */}
+      {/* Header with back button and breadcrumb */}
       <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center gap-3 justify-between">
         <Button
           size="sm"
@@ -118,6 +118,10 @@ export default function IdeaNetworkDetail({
           </svg>
         </Button>
         <div className="flex-1 min-w-0">
+          {/* Breadcrumb */}
+          <div className="text-xs text-muted-foreground/60 mb-1 truncate">
+            Networks / {network.title}
+          </div>
           <h3 className="text-lg font-serif font-bold text-foreground truncate">
             {network.title}
           </h3>
