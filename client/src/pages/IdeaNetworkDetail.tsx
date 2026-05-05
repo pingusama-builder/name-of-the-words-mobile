@@ -38,13 +38,31 @@ export default function IdeaNetworkDetail({
   const { data: networkDetails, isLoading } =
     trpc.ideas.getNetworkWithDetails.useQuery(networkId);
 
-  // Create primary idea mutation
-  const createIdeaMutation = trpc.ideas.createPrimary.useMutation({
+  // Update network mutation to add ideas
+  const updateNetworkMutation = trpc.ideas.updateNetwork.useMutation({
     onSuccess: () => {
       invalidateNetwork();
+      toast.success("Idea added to network");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to add idea to network");
+    },
+  });
+
+  // Create primary idea mutation
+  const createIdeaMutation = trpc.ideas.createPrimary.useMutation({
+    onSuccess: (newIdea: any) => {
+      // Add the newly created idea to the network
+      const currentIdeaIds = networkDetails?.ideas?.map((i: any) => i.id) || [];
+      const updatedIdeaIds = [...currentIdeaIds, newIdea.id];
+      
+      updateNetworkMutation.mutate({
+        id: networkId,
+        ideaPrimaryIds: updatedIdeaIds,
+      });
+      
       setNewIdeaTerm("");
       setShowAddIdea(false);
-      toast.success("Idea created");
     },
     onError: (error) => {
       toast.error(error.message || "Failed to create idea");
