@@ -3,15 +3,16 @@
  * View and manage instances of a single idea across different contexts
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2, Edit2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import InstanceForm from "@/components/InstanceForm";
 
 interface PrimaryIdeaDetailProps {
   ideaId: number;
@@ -23,8 +24,9 @@ export default function PrimaryIdeaDetail({
   onClose,
 }: PrimaryIdeaDetailProps) {
   const [showAddInstance, setShowAddInstance] = useState(false);
-  const [newInstanceContext, setNewInstanceContext] = useState("");
-  const [newInstanceLocation, setNewInstanceLocation] = useState("");
+  const [isEditingIdea, setIsEditingIdea] = useState(false);
+  const [editTerm, setEditTerm] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const queryClient = useQueryClient();
 
@@ -42,8 +44,6 @@ export default function PrimaryIdeaDetail({
       queryClient.invalidateQueries({
         queryKey: ["ideas.getInstancesByIdea", ideaId],
       });
-      setNewInstanceContext("");
-      setNewInstanceLocation("");
       setShowAddInstance(false);
       toast.success("Instance added");
     },
@@ -65,16 +65,24 @@ export default function PrimaryIdeaDetail({
     },
   });
 
-  const handleAddInstance = () => {
-    if (!newInstanceContext.trim()) {
-      toast.error("Context is required");
-      return;
-    }
+  // Update primary idea mutation
+  const updateIdeaMutation = trpc.ideas.updatePrimary.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["ideas.getPrimary", ideaId],
+      });
+      setIsEditingIdea(false);
+      toast.success("Idea updated");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update idea");
+    },
+  });
 
+  const handleAddInstance = (data: any) => {
     createInstanceMutation.mutate({
       ideaPrimaryId: ideaId,
-      context: newInstanceContext,
-      location: newInstanceLocation || undefined,
+      ...data,
     });
   };
 
@@ -82,6 +90,25 @@ export default function PrimaryIdeaDetail({
     if (confirm("Delete this instance?")) {
       deleteInstanceMutation.mutate(id);
     }
+  };
+
+  const handleEditIdea = () => {
+    setEditTerm(idea?.term || "");
+    setEditDescription(idea?.description || "");
+    setIsEditingIdea(true);
+  };
+
+  const handleSaveIdea = () => {
+    if (!editTerm.trim()) {
+      toast.error("Idea term is required");
+      return;
+    }
+
+    updateIdeaMutation.mutate({
+      id: ideaId,
+      term: editTerm,
+      description: editDescription || undefined,
+    });
   };
 
   if (ideaLoading) {
@@ -139,9 +166,43 @@ export default function PrimaryIdeaDetail({
             )}
           </div>
         </div>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleEditIdea}
+          className="h-8 w-8 p-0 flex-shrink-0"
+          title="Edit idea"
+        >
+          <Edit2 className="w-4 h-4" />
+        </Button>
       </div>
 
       <div className="p-4 space-y-4">
+        {/* Idea Info Section */}
+        <div className="space-y-3 border-b border-border pb-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-foreground">Idea Details</h4>
+          </div>
+          <div className="space-y-2 text-sm">
+            <div>
+              <span className="text-muted-foreground">Term:</span>
+              <p className="text-foreground font-medium">{idea.term}</p>
+            </div>
+            {idea.description && (
+              <div>
+                <span className="text-muted-foreground">Description:</span>
+                <p className="text-foreground">{idea.description}</p>
+              </div>
+            )}
+            {idea.primarySource && (
+              <div>
+                <span className="text-muted-foreground">Source:</span>
+                <p className="text-foreground">{idea.primarySource}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Instances Header */}
         <div className="flex items-center justify-between">
           <h4 className="font-semibold text-foreground">
@@ -205,21 +266,21 @@ export default function PrimaryIdeaDetail({
         )}
       </div>
 
-      {/* Add Instance Sheet */}
+      {/* Edit Idea Sheet */}
       <AnimatePresence>
-        {showAddInstance && (
+        {isEditingIdea && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 z-40"
-            onClick={() => setShowAddInstance(false)}
+            onClick={() => setIsEditingIdea(false)}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {showAddInstance && (
+        {isEditingIdea && (
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -227,50 +288,71 @@ export default function PrimaryIdeaDetail({
             className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-lg p-4"
           >
             <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Add Instance</h4>
+              <h4 className="font-semibold text-foreground">Edit Idea</h4>
 
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                  Context *
+                  Term *
                 </label>
-                <textarea
-                  placeholder="Where and how this idea appears..."
-                  value={newInstanceContext}
-                  onChange={(e) => setNewInstanceContext(e.target.value)}
-                  className="w-full bg-secondary border border-border rounded-md p-2 text-sm text-foreground placeholder-muted-foreground resize-none h-20"
+                <Input
+                  placeholder="Idea term..."
+                  value={editTerm}
+                  onChange={(e) => setEditTerm(e.target.value)}
+                  className="bg-secondary"
                 />
               </div>
 
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1">
-                  Location (optional)
+                  Description (optional)
                 </label>
-                <Input
-                  placeholder="e.g., p. 42, Ch. 3, 2:30:45"
-                  value={newInstanceLocation}
-                  onChange={(e) => setNewInstanceLocation(e.target.value)}
-                  className="bg-secondary"
+                <textarea
+                  placeholder="Add context or notes..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full bg-secondary border border-border rounded-md p-2 text-sm text-foreground placeholder-muted-foreground resize-none h-20"
                 />
               </div>
 
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setShowAddInstance(false)}
+                  onClick={() => setIsEditingIdea(false)}
                   className="flex-1"
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleAddInstance}
-                  disabled={createInstanceMutation.isPending}
+                  onClick={handleSaveIdea}
+                  disabled={updateIdeaMutation.isPending}
                   className="flex-1"
                 >
-                  {createInstanceMutation.isPending ? "Adding..." : "Add"}
+                  {updateIdeaMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </div>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Instance Sheet */}
+      <AnimatePresence>
+        {showAddInstance && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setShowAddInstance(false)}
+            />
+            <InstanceForm
+              onSubmit={handleAddInstance}
+              onCancel={() => setShowAddInstance(false)}
+              isLoading={createInstanceMutation.isPending}
+              submitLabel="Add"
+            />
+          </>
         )}
       </AnimatePresence>
     </motion.div>

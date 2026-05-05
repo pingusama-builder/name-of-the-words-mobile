@@ -120,9 +120,15 @@ export interface IIdeasStorage {
   // Aggregations
   getNetworkWithDetails(networkId: number, userId: string): Promise<{
     network: IdeaNetwork;
-    ideas: (IdeaPrimary & { isCentral: boolean })[];
+    ideas: (IdeaPrimary & { isCentral: boolean })[]
     instances: Record<number, IdeaInstance[]>;
     connections: IdeaConnection[];
+  }>;
+
+  getLinkedIdeasForWord(wordId: number, userId: string): Promise<{
+    ideas: IdeaPrimary[];
+    instances: IdeaInstance[];
+    networks: IdeaNetwork[];
   }>;
 }
 
@@ -693,6 +699,46 @@ export class IdeasStorage implements IIdeasStorage {
       : [];
 
     return { network: network[0], ideas, instances, connections };
+  }
+
+  async getLinkedIdeasForWord(wordId: number, userId: string): Promise<{
+    ideas: IdeaPrimary[];
+    instances: IdeaInstance[];
+    networks: IdeaNetwork[];
+  }> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    // Fetch all instances for this word
+    const instances = await db.select().from(ideaInstances)
+      .where(and(
+        eq(ideaInstances.wordId, wordId),
+        eq(ideaInstances.userId, userId)
+      ));
+
+    // Get unique idea IDs from instances
+    const ideaPrimaryIds = Array.from(new Set(instances.map(i => i.ideaPrimaryId)));
+
+    // Fetch all ideas
+    const ideas = ideaPrimaryIds.length > 0
+      ? await db.select().from(ideaPrimaries)
+          .where(inArray(ideaPrimaries.id, ideaPrimaryIds))
+      : [];
+
+    // Fetch networks that contain these ideas
+    const networkJunctions = ideaPrimaryIds.length > 0
+      ? await db.select().from(ideaNetworkPrimaries)
+          .where(inArray(ideaNetworkPrimaries.ideaPrimaryId, ideaPrimaryIds))
+      : [];
+
+    const networkIds = Array.from(new Set(networkJunctions.map(j => j.networkId)));
+
+    const networks = networkIds.length > 0
+      ? await db.select().from(ideaNetworks)
+          .where(inArray(ideaNetworks.id, networkIds))
+      : [];
+
+    return { ideas, instances, networks };
   }
 }
 

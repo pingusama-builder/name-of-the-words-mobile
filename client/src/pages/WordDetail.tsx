@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import EditWord from "@/pages/EditWord";
 import SourceDeck from "@/components/SourceDeck";
 import AddToIdeaDialog from "@/components/AddToIdeaDialog";
+import { trpc } from "@/lib/trpc";
 
 interface WordDetailProps {
   word: Word;
@@ -41,6 +42,9 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
   const [currentWord, setCurrentWord] = useState<Word>(word);
   const [showSourceDeck, setShowSourceDeck] = useState(false);
   const [showAddToIdea, setShowAddToIdea] = useState(false);
+
+  // Fetch linked ideas for this word
+  const { data: linkedIdeasData } = trpc.ideas.getLinkedIdeasForWord.useQuery(word.id);
 
   const tags: string[] = (() => {
     try { return JSON.parse(currentWord.tags || "[]"); }
@@ -238,6 +242,38 @@ export default function WordDetail({ word, onClose }: WordDetailProps) {
                     <Badge key={tag} variant="secondary" className="text-xs bg-muted/30 text-muted-foreground border-none px-2.5 py-0.5">
                       {tag}
                     </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Linked Ideas Section */}
+            {linkedIdeasData && linkedIdeasData.ideas && linkedIdeasData.ideas.length > 0 && (
+              <div className="border-t border-border/20 pt-4 mb-4">
+                <p className="text-xs text-muted-foreground/50 mb-2 uppercase tracking-wider">Linked Ideas</p>
+                <div className="space-y-2">
+                  {linkedIdeasData.ideas.map((idea: any) => (
+                    <div key={idea.id} className="p-2.5 rounded-lg bg-muted/20 border border-border/30">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: idea.color || "#999" }}
+                        />
+                        <span className="text-sm font-medium text-foreground">{idea.term}</span>
+                      </div>
+                      {idea.description && (
+                        <p className="text-xs text-muted-foreground/70 ml-4">{idea.description}</p>
+                      )}
+                      {linkedIdeasData.networks && linkedIdeasData.networks.length > 0 && (
+                        <div className="text-xs text-muted-foreground/60 ml-4 mt-1">
+                          In {linkedIdeasData.networks.filter((n: any) => 
+                            linkedIdeasData.instances.some((inst: any) => 
+                              inst.ideaPrimaryId === idea.id
+                            )
+                          ).length} network(s)
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>

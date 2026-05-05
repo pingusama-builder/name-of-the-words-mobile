@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import IdeaNetworkGraph from "@/components/IdeaNetworkGraph";
 import ConnectionDetail from "@/pages/ConnectionDetail";
+import PrimaryIdeaDetail from "@/pages/PrimaryIdeaDetail";
 
 interface IdeaNetworkDetailProps {
   networkId: number;
@@ -27,6 +28,7 @@ export default function IdeaNetworkDetail({
   const [showAddIdea, setShowAddIdea] = useState(false);
   const [newIdeaTerm, setNewIdeaTerm] = useState("");
   const [selectedIdeaId, setSelectedIdeaId] = useState<number | null>(null);
+  const [showPrimaryDetail, setShowPrimaryDetail] = useState(false);
   const [showGraph, setShowGraph] = useState(false);
   const [showConnectionForm, setShowConnectionForm] = useState(false);
 
@@ -67,6 +69,11 @@ export default function IdeaNetworkDetail({
       description: "",
       originLanguage: "english",
     });
+  };
+
+  const handleSelectIdea = (ideaId: number) => {
+    setSelectedIdeaId(ideaId);
+    setShowPrimaryDetail(true);
   };
 
   if (isLoading) {
@@ -189,7 +196,7 @@ export default function IdeaNetworkDetail({
                     <Card
                       key={idea.id}
                       className="p-3 cursor-pointer hover:bg-accent/50 transition-colors"
-                      onClick={() => setSelectedIdeaId(idea.id)}
+                      onClick={() => handleSelectIdea(idea.id)}
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -250,6 +257,20 @@ export default function IdeaNetworkDetail({
           </>
         )}
       </div>
+
+      {/* Primary Idea Detail Modal */}
+      <AnimatePresence>
+        {showPrimaryDetail && selectedIdeaId && (
+          <PrimaryIdeaDetail
+            ideaId={selectedIdeaId}
+            onClose={() => {
+              setShowPrimaryDetail(false);
+              setSelectedIdeaId(null);
+              invalidateNetwork();
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Connection Form */}
       <AnimatePresence>

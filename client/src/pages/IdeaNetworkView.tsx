@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import IdeaNetworkDetail from "./IdeaNetworkDetail";
 
 interface IdeaNetwork {
   id: number;
@@ -233,6 +234,26 @@ export default function IdeaNetworkView() {
       >
         <Plus className="w-6 h-6" />
       </motion.button>
+
+      {/* Network Detail Modal */}
+      <AnimatePresence>
+        {showNetworkDetail && selectedNetworkId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-background"
+          >
+            <IdeaNetworkDetail
+              networkId={selectedNetworkId}
+              onClose={() => {
+                setShowNetworkDetail(false);
+                setSelectedNetworkId(null);
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

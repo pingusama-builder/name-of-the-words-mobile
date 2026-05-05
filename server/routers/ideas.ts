@@ -115,6 +115,12 @@ export const ideaRouter = router({
       return ideasStorage.deleteInstance(input, ctx.user.openId);
     }),
 
+  getLinkedIdeasForWord: protectedProcedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      return ideasStorage.getLinkedIdeasForWord(input, ctx.user.openId);
+    }),
+
   // ========== CONNECTIONS ==========
 
   createConnection: protectedProcedure
