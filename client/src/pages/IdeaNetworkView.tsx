@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import IdeaNetworkDetail from "./IdeaNetworkDetail";
+import ConnectNetworkDialog from "@/components/ConnectNetworkDialog";
 
 interface IdeaNetwork {
   id: number;
@@ -31,6 +32,8 @@ export default function IdeaNetworkView() {
   const [newNetworkDescription, setNewNetworkDescription] = useState("");
   const [selectedNetworkId, setSelectedNetworkId] = useState<number | null>(null);
   const [showNetworkDetail, setShowNetworkDetail] = useState(false);
+  const [showConnectDialog, setShowConnectDialog] = useState(false);
+  const [networkToConnect, setNetworkToConnect] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -168,8 +171,8 @@ export default function IdeaNetworkView() {
                         size="sm"
                         variant="ghost"
                         onClick={() => {
-                          setSelectedNetworkId(network.id);
-                          // TODO: Show connect network dialog
+                          setNetworkToConnect(network.id);
+                          setShowConnectDialog(true);
                         }}
                         className="h-8 w-8 p-0 hover:text-accent"
                         title="Connect to another network"
@@ -262,6 +265,21 @@ export default function IdeaNetworkView() {
       >
         <Plus className="w-6 h-6" />
       </motion.button>
+
+      {/* Connect Network Dialog */}
+      {networkToConnect && (
+        <ConnectNetworkDialog
+          sourceNetworkId={networkToConnect}
+          isOpen={showConnectDialog}
+          onClose={() => {
+            setShowConnectDialog(false);
+            setNetworkToConnect(null);
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["ideas.listNetworks"] });
+          }}
+        />
+      )}
 
       {/* Network Detail Modal */}
       <AnimatePresence>
