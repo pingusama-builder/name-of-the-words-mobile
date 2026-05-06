@@ -160,14 +160,30 @@ export default function IdeaNetworkView() {
                         variant="ghost"
                         onClick={() => handleViewNetwork(network.id)}
                         className="h-8 w-8 p-0"
+                        title="View network"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
+                        onClick={() => {
+                          setSelectedNetworkId(network.id);
+                          // TODO: Show connect network dialog
+                        }}
+                        className="h-8 w-8 p-0 hover:text-accent"
+                        title="Connect to another network"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M10 5H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2m-4-4h6m0 0l-2-2m2 2l-2 2" />
+                        </svg>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleDeleteNetwork(network.id)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        title="Delete network"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

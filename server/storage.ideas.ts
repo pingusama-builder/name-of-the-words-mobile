@@ -12,6 +12,7 @@ import {
   ideaConnections,
   ideaNetworks,
   ideaNetworkPrimaries,
+  ideaNetworkConnections,
   type IdeaPrimary,
   type InsertIdeaPrimary,
   type IdeaInstance,
@@ -22,6 +23,8 @@ import {
   type InsertIdeaNetwork,
   type IdeaNetworkPrimary,
   type InsertIdeaNetworkPrimary,
+  type IdeaNetworkConnection,
+  type InsertIdeaNetworkConnection,
 } from "../drizzle/schema";
 import { words } from "../shared/schema";
 import { extractLocationOrder, generateUniqueColor } from "./utils";
@@ -130,6 +133,25 @@ export interface IIdeasStorage {
     instances: IdeaInstance[];
     networks: IdeaNetwork[];
   }>;
+
+  // Network Connections
+  createNetworkConnection(userId: string, connection: {
+    networkIdA: number;
+    networkIdB: number;
+    connectionType?: string;
+    description?: string;
+    strength?: number;
+  }): Promise<IdeaNetworkConnection>;
+
+  getNetworkConnections(networkId: number, userId: string): Promise<IdeaNetworkConnection[]>;
+
+  updateNetworkConnection(id: number, userId: string, updates: Partial<{
+    connectionType: string;
+    description: string;
+    strength: number;
+  }>): Promise<IdeaNetworkConnection>;
+
+  deleteNetworkConnection(id: number, userId: string): Promise<void>;
 }
 
 export class IdeasStorage implements IIdeasStorage {
@@ -739,6 +761,98 @@ export class IdeasStorage implements IIdeasStorage {
       : [];
 
     return { ideas, instances, networks };
+  }
+
+  // ========== NETWORK CONNECTIONS ==========
+
+  async createNetworkConnection(userId: string, connection: {
+    networkIdA: number;
+    networkIdB: number;
+    connectionType?: string;
+    description?: string;
+    strength?: number;
+  }): Promise<IdeaNetworkConnection> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const now = new Date().toISOString();
+
+    const result = await db.insert(ideaNetworkConnections).values({
+      userId,
+      networkIdA: connection.networkIdA,
+      networkIdB: connection.networkIdB,
+      connectionType: connection.connectionType ?? "related",
+      description: connection.description,
+      strength: connection.strength ?? 5,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const insertId = (result as any)[0]?.insertId ?? Number((result as any).insertId);
+    const created = await db.select().from(ideaNetworkConnections)
+      .where(eq(ideaNetworkConnections.id, insertId))
+      .limit(1);
+
+    return created[0];
+  }
+
+  async getNetworkConnections(networkId: number, userId: string): Promise<IdeaNetworkConnection[]> {
+    const db = await getDb();
+    if (!db) return [];
+
+    return await db.select().from(ideaNetworkConnections)
+      .where(and(
+        eq(ideaNetworkConnections.userId, userId),
+        or(
+          eq(ideaNetworkConnections.networkIdA, networkId),
+          eq(ideaNetworkConnections.networkIdB, networkId)
+        )
+      ));
+  }
+
+  async updateNetworkConnection(id: number, userId: string, updates: Partial<{
+    connectionType: string;
+    description: string;
+    strength: number;
+  }>): Promise<IdeaNetworkConnection> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const now = new Date().toISOString();
+
+    await db.update(ideaNetworkConnections)
+      .set({
+        ...updates,
+        updatedAt: now,
+      })
+      .where(and(
+        eq(ideaNetworkConnections.id, id),
+        eq(ideaNetworkConnections.userId, userId)
+      ));
+
+    const updated = await db.select().from(ideaNetworkConnections)
+      .where(eq(ideaNetworkConnections.id, id))
+      .limit(1);
+
+    if (!updated[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Network connection not found" });
+    return updated[0];
+  }
+
+  async deleteNetworkConnection(id: number, userId: string): Promise<void> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not available");
+
+    const existing = await db.select().from(ideaNetworkConnections)
+      .where(and(
+        eq(ideaNetworkConnections.id, id),
+        eq(ideaNetworkConnections.userId, userId)
+      ))
+      .limit(1);
+
+    if (!existing[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Network connection not found" });
+
+    await db.delete(ideaNetworkConnections)
+      .where(eq(ideaNetworkConnections.id, id));
   }
 }
 

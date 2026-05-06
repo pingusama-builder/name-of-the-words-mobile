@@ -225,4 +225,42 @@ export const ideaRouter = router({
         input.isCentral,
       );
     }),
+
+  // ========== NETWORK CONNECTIONS ==========
+
+  createNetworkConnection: protectedProcedure
+    .input(z.object({
+      networkIdA: z.number(),
+      networkIdB: z.number(),
+      connectionType: z.enum(["related", "contrast", "supports", "contradicts", "precedes", "enables"]).optional().default("related"),
+      description: z.string().optional(),
+      strength: z.number().min(1).max(10).optional().default(5),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      return ideasStorage.createNetworkConnection(ctx.user.openId, input);
+    }),
+
+  getNetworkConnections: protectedProcedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      return ideasStorage.getNetworkConnections(input, ctx.user.openId);
+    }),
+
+  updateNetworkConnection: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      connectionType: z.string().optional(),
+      description: z.string().optional(),
+      strength: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...updates } = input;
+      return ideasStorage.updateNetworkConnection(id, ctx.user.openId, updates);
+    }),
+
+  deleteNetworkConnection: protectedProcedure
+    .input(z.number())
+    .mutation(async ({ ctx, input }) => {
+      return ideasStorage.deleteNetworkConnection(input, ctx.user.openId);
+    }),
 });

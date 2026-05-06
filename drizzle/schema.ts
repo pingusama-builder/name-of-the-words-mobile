@@ -120,6 +120,26 @@ export const ideaNetworkPrimaries = mysqlTable("idea_network_primaries", {
 export type IdeaNetworkPrimary = typeof ideaNetworkPrimaries.$inferSelect;
 export type InsertIdeaNetworkPrimary = typeof ideaNetworkPrimaries.$inferInsert;
 
+export const ideaNetworkConnections = mysqlTable("idea_network_connections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: varchar("user_id", { length: 128 }).notNull(),
+  networkIdA: int("network_id_a").notNull(),
+  networkIdB: int("network_id_b").notNull(),
+  connectionType: varchar("connection_type", { length: 64 }).default("related"),
+  description: text("description"),
+  strength: int("strength").default(5),
+  createdAt: varchar("created_at", { length: 64 }).notNull(),
+  updatedAt: varchar("updated_at", { length: 64 }).notNull(),
+}, (table) => ({
+  userIdIdx: index("idx_network_connections_user_id").on(table.userId),
+  networkIdAIdx: index("idx_network_connections_network_id_a").on(table.networkIdA),
+  networkIdBIdx: index("idx_network_connections_network_id_b").on(table.networkIdB),
+  uniqueConnection: unique("unique_network_connection").on(table.userId, table.networkIdA, table.networkIdB),
+}));
+
+export type IdeaNetworkConnection = typeof ideaNetworkConnections.$inferSelect;
+export type InsertIdeaNetworkConnection = typeof ideaNetworkConnections.$inferInsert;
+
 // Word bank tables
 export { words, tags, insertWordSchema, insertTagSchema } from "../shared/schema";
 export type { Word, InsertWord, Tag, InsertTag } from "../shared/schema";
