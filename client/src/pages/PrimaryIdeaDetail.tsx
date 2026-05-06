@@ -27,6 +27,7 @@ export default function PrimaryIdeaDetail({
   const [isEditingIdea, setIsEditingIdea] = useState(false);
   const [editTerm, setEditTerm] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editingInstanceId, setEditingInstanceId] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -65,6 +66,20 @@ export default function PrimaryIdeaDetail({
     },
   });
 
+  // Update instance mutation
+  const updateInstanceMutation = trpc.ideas.updateInstance.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["ideas.getInstancesByIdea", ideaId],
+      });
+      setEditingInstanceId(null);
+      toast.success("Instance updated");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update instance");
+    },
+  });
+
   // Update primary idea mutation
   const updateIdeaMutation = trpc.ideas.updatePrimary.useMutation({
     onSuccess: () => {
@@ -89,6 +104,19 @@ export default function PrimaryIdeaDetail({
   const handleDeleteInstance = (id: number) => {
     if (confirm("Delete this instance?")) {
       deleteInstanceMutation.mutate(id);
+    }
+  };
+
+  const handleEditInstance = (instance: any) => {
+    setEditingInstanceId(instance.id);
+  };
+
+  const handleUpdateInstance = (data: any) => {
+    if (editingInstanceId) {
+      updateInstanceMutation.mutate({
+        id: editingInstanceId,
+        ...data,
+      });
     }
   };
 
@@ -251,14 +279,26 @@ export default function PrimaryIdeaDetail({
                       </p>
                     )}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDeleteInstance(instance.id)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive flex-shrink-0"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditInstance(instance)}
+                      className="h-8 w-8 p-0 hover:text-accent flex-shrink-0"
+                      title="Edit instance"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDeleteInstance(instance.id)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive flex-shrink-0"
+                      title="Delete instance"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -351,6 +391,28 @@ export default function PrimaryIdeaDetail({
               onCancel={() => setShowAddInstance(false)}
               isLoading={createInstanceMutation.isPending}
               submitLabel="Add"
+            />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Instance Sheet */}
+      <AnimatePresence>
+        {editingInstanceId !== null && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40"
+              onClick={() => setEditingInstanceId(null)}
+            />
+            <InstanceForm
+              initialData={instances.find((i: any) => i.id === editingInstanceId)}
+              onSubmit={handleUpdateInstance}
+              onCancel={() => setEditingInstanceId(null)}
+              isLoading={updateInstanceMutation.isPending}
+              submitLabel="Update"
             />
           </>
         )}

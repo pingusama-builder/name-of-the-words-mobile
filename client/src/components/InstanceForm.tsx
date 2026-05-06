@@ -20,11 +20,11 @@ interface InstanceFormProps {
   isLoading?: boolean;
   submitLabel?: string;
   initialData?: {
-    context?: string;
-    location?: string;
-    meaning?: string;
-    interpretation?: string;
-    dateEncountered?: string;
+    context?: string | null;
+    location?: string | null;
+    meaning?: string | null;
+    interpretation?: string | null;
+    dateEncountered?: string | null;
   };
 }
 
@@ -35,11 +35,11 @@ export default function InstanceForm({
   submitLabel = "Add",
   initialData = {},
 }: InstanceFormProps) {
-  const [context, setContext] = useState(initialData.context || "");
-  const [location, setLocation] = useState(initialData.location || "");
-  const [meaning, setMeaning] = useState(initialData.meaning || "");
-  const [interpretation, setInterpretation] = useState(initialData.interpretation || "");
-  const [dateEncountered, setDateEncountered] = useState(initialData.dateEncountered || "");
+  const [context, setContext] = useState(initialData.context ?? "");
+  const [location, setLocation] = useState(initialData.location ?? "");
+  const [meaning, setMeaning] = useState(initialData.meaning ?? "");
+  const [interpretation, setInterpretation] = useState(initialData.interpretation ?? "");
+  const [dateEncountered, setDateEncountered] = useState(initialData.dateEncountered ?? "");
 
   const handleSubmit = () => {
     if (!context.trim()) {

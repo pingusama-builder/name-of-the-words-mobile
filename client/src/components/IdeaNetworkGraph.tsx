@@ -30,6 +30,8 @@ interface IdeaNetworkGraphProps {
   onNodePositionChange?: (positions: Record<number, { x: number; y: number }>) => void;
   isLoading?: boolean;
   height?: number;
+  focusedNodeId?: number | null;
+  onFocusChange?: (nodeId: number | null) => void;
 }
 
 interface SimulationNode extends d3.SimulationNodeDatum {
@@ -57,10 +59,13 @@ export default function IdeaNetworkGraph({
   onNodePositionChange,
   isLoading = false,
   height = 400,
+  focusedNodeId = null,
+  onFocusChange,
 }: IdeaNetworkGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<number | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const simulationRef = useRef<d3.Simulation<SimulationNode, SimulationLink> | null>(null);
 
   // Prepare data for D3
   const { nodes, links } = useMemo(() => {
@@ -105,6 +110,8 @@ export default function IdeaNetworkGraph({
       .force("charge", d3.forceManyBody().strength(-300))
       .force("center", d3.forceCenter(width / 2, height / 2))
       .force("collision", d3.forceCollide().radius(40));
+    
+    simulationRef.current = simulation;
 
     // Create SVG groups
     const g = svg.append("g");
@@ -196,6 +203,15 @@ export default function IdeaNetworkGraph({
         .attr("cx", (d: any) => d.x || 0)
         .attr("cy", (d: any) => d.y || 0)
         .attr("opacity", (d: any) => {
+          if (focusedNodeId !== null && d.id !== focusedNodeId) {
+            // If focused on a node, dim others
+            const isConnected = links.some(
+              (l) =>
+                (typeof l.source === 'object' && l.source && (l.source as SimulationNode).id === focusedNodeId && (l.target as SimulationNode).id === d.id) ||
+                (typeof l.target === 'object' && l.target && (l.target as SimulationNode).id === focusedNodeId && (l.source as SimulationNode).id === d.id)
+            );
+            return isConnected ? 1 : 0.2;
+          }
           if (hoveredNodeId === null) return 0.8;
           if (d.id === hoveredNodeId) return 1;
           // Check if connected to hovered node
@@ -216,7 +232,7 @@ export default function IdeaNetworkGraph({
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, height, hoveredNodeId, onNodeClick, onNodePositionChange, isLoading]);
+  }, [nodes, links, height, hoveredNodeId, focusedNodeId, onNodeClick, onNodePositionChange, isLoading]);
 
   if (isLoading) {
     return (
@@ -236,15 +252,36 @@ export default function IdeaNetworkGraph({
     );
   }
 
+  const handleCenterGraph = () => {
+    if (focusedNodeId === null && simulationRef.current) {
+      // Reset to show all nodes
+      const simulation = simulationRef.current;
+      simulation.alpha(1).restart();
+    }
+  };
+
   return (
     <div className="w-full bg-card/50 rounded-lg border border-border/50 overflow-hidden">
-      <svg
-        ref={svgRef}
-        width="100%"
-        height={height}
-        className="bg-background/50"
-        style={{ cursor: "grab" }}
-      />
+      <div className="relative">
+        <svg
+          ref={svgRef}
+          width="100%"
+          height={height}
+          className="bg-background/50"
+          style={{ cursor: "grab", touchAction: "none" }}
+        />
+        {/* Center/Reset Button */}
+        <button
+          onClick={handleCenterGraph}
+          className="absolute top-3 right-3 bg-primary/80 hover:bg-primary text-primary-foreground rounded-full p-2 shadow-lg transition-colors z-10"
+          title="Center graph"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
