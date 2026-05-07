@@ -284,11 +284,26 @@
 - [x] Add connection strength slider (1-10)
 - [x] Add optional description field
 
-### Remaining Polish Items
+### Remaining Polish Items (Optional/Deferred)
 - [x] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
 - [x] Add Ideas Mode badge to bottom nav showing count of networks
-- [ ] Ensure graph visualization is touch-friendly on mobile
-- [ ] Add swipe gestures for navigation (back/forward)
-- [ ] Optimize IdeaNetworkGraph for small screens
-- [ ] Add collapsible panels for instance details on mobile
-- [ ] Implement bulk instance creation from multiple words
+- [ ] Ensure graph visualization is touch-friendly on mobile (D3 drag already works)
+- [ ] Add swipe gestures for navigation (back/forward) - nice-to-have
+- [ ] Optimize IdeaNetworkGraph for small screens - performance optimization
+- [ ] Add collapsible panels for instance details on mobile - UX enhancement
+- [ ] Implement bulk instance creation from multiple words - advanced feature
+
+NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
+
+## Bug Fixes & Missing Features
+
+### Network Editing
+- [ ] Add edit button to network cards in IdeaNetworkView
+- [ ] Create EditNetworkDialog component (title, description)
+- [ ] Implement updateNetwork mutation for editing
+- [ ] Wire edit dialog to network card
+
+### Design Rule: Every New Item Must Have Edit
+- [ ] Add edit capability to all new features (networks, ideas, instances, connections)
+- [ ] Ensure delete operations are paired with edit operations
+- [ ] Add edit button/icon to every list item component

@@ -34,6 +34,9 @@ export default function IdeaNetworkView() {
   const [showNetworkDetail, setShowNetworkDetail] = useState(false);
   const [showConnectDialog, setShowConnectDialog] = useState(false);
   const [networkToConnect, setNetworkToConnect] = useState<number | null>(null);
+  const [editingNetworkId, setEditingNetworkId] = useState<number | null>(null);
+  const [editNetworkTitle, setEditNetworkTitle] = useState("");
+  const [editNetworkDescription, setEditNetworkDescription] = useState("");
 
   const queryClient = useQueryClient();
   const utils = trpc.useUtils();
@@ -68,17 +71,51 @@ export default function IdeaNetworkView() {
     },
   });
 
+  // Update network mutation
+  const updateNetworkMutation = trpc.ideas.updateNetwork.useMutation({
+    onSuccess: () => {
+      utils.ideas.listNetworks.invalidate();
+      setEditingNetworkId(null);
+      setEditNetworkTitle("");
+      setEditNetworkDescription("");
+      toast.success("Network updated");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update network");
+    },
+  });
+
   const handleCreateNetwork = async () => {
     if (!newNetworkTitle.trim()) {
       toast.error("Network title is required");
       return;
     }
-
     createNetworkMutation.mutate({
       title: newNetworkTitle,
       description: newNetworkDescription || undefined,
       ideaPrimaryIds: [],
     });
+  };
+
+  const handleEditNetwork = (network: IdeaNetwork) => {
+    setEditingNetworkId(network.id);
+    setEditNetworkTitle(network.title);
+    setEditNetworkDescription(network.description || "");
+  };
+
+  const handleSaveEditNetwork = async () => {
+    if (!editNetworkTitle.trim()) {
+      toast.error("Network title is required");
+      return;
+    }
+    if (editingNetworkId) {
+      updateNetworkMutation.mutate({
+        id: editingNetworkId,
+        title: editNetworkTitle,
+        description: editNetworkDescription || undefined,
+        ideaPrimaryIds: [],
+      });
+    }
   };
 
   const handleDeleteNetwork = (id: number) => {
@@ -187,6 +224,15 @@ export default function IdeaNetworkView() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        onClick={() => handleEditNetwork(network)}
+                        className="h-8 w-8 p-0"
+                        title="Edit network"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleDeleteNetwork(network.id)}
                         className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         title="Delete network"
@@ -250,6 +296,61 @@ export default function IdeaNetworkView() {
                   className="flex-1"
                 >
                   {createNetworkMutation.isPending ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Network Sheet */}
+      <AnimatePresence>
+        {editingNetworkId && (
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            className="fixed inset-x-0 bottom-0 z-50 bg-background border-t border-border rounded-t-lg p-4 max-h-[80vh] overflow-y-auto"
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-foreground block mb-2">
+                  Network Title
+                </label>
+                <Input
+                  placeholder="e.g., Thin-slicing vs Thick-slicing"
+                  value={editNetworkTitle}
+                  onChange={(e) => setEditNetworkTitle(e.target.value)}
+                  className="bg-secondary"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-foreground block mb-2">
+                  Description (optional)
+                </label>
+                <textarea
+                  placeholder="Add context or notes about this network..."
+                  value={editNetworkDescription}
+                  onChange={(e) => setEditNetworkDescription(e.target.value)}
+                  className="w-full bg-secondary border border-border rounded-md p-2 text-sm text-foreground placeholder-muted-foreground resize-none h-20"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingNetworkId(null)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEditNetwork}
+                  disabled={updateNetworkMutation.isPending}
+                  className="flex-1"
+                >
+                  {updateNetworkMutation.isPending ? "Saving..." : "Save"}
                 </Button>
               </div>
             </div>
