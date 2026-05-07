@@ -216,6 +216,7 @@
 - [x] Add "Create Network" button in IdeaNetworkView header
 - [ ] Add Ideas Mode badge to bottom nav showing count of networks
 - [x] Add breadcrumb navigation in IdeaNetworkDetail (Network > Idea)
+- [x] Fix cache invalidation for instant network list updates
 
 ### WordDetail Integration
 - [x] Add "Add to Idea" button in WordDetail component
@@ -270,3 +271,24 @@
 - [x] Created ideas.workflows.test.ts with comprehensive tests
 - [x] Tests cover: network CRUD, idea CRUD, instance creation with full fields, linked ideas retrieval
 - [x] All tests passing (13/13 passed)
+
+## Ideas Mode — Phase 6: Network Connections & Polish
+
+### Network-to-Network Connections
+- [x] Add ideaNetworkConnections table to schema
+- [x] Implement storage layer methods (create, get, update, delete)
+- [x] Implement tRPC procedures for network connections
+- [x] Create ConnectNetworkDialog component
+- [x] Integrate connect button into IdeaNetworkView
+- [x] Support 6 connection types (related, contrast, supports, contradicts, precedes, enables)
+- [x] Add connection strength slider (1-10)
+- [x] Add optional description field
+
+### Remaining Polish Items
+- [x] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
+- [x] Add Ideas Mode badge to bottom nav showing count of networks
+- [ ] Ensure graph visualization is touch-friendly on mobile
+- [ ] Add swipe gestures for navigation (back/forward)
+- [ ] Optimize IdeaNetworkGraph for small screens
+- [ ] Add collapsible panels for instance details on mobile
+- [ ] Implement bulk instance creation from multiple words
