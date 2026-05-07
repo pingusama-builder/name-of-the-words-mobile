@@ -43,7 +43,8 @@ export default function IdeaNetworkView() {
   // Create network mutation
   const createNetworkMutation = trpc.ideas.createNetwork.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ideas.listNetworks"] });
+      // Use tRPC utils for proper cache invalidation
+      trpc.useUtils().ideas.listNetworks.invalidate();
       setNewNetworkTitle("");
       setNewNetworkDescription("");
       setShowCreateSheet(false);
@@ -57,7 +58,8 @@ export default function IdeaNetworkView() {
   // Delete network mutation
   const deleteNetworkMutation = trpc.ideas.deleteNetwork.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ideas.listNetworks"] });
+      // Use tRPC utils for proper cache invalidation
+      trpc.useUtils().ideas.listNetworks.invalidate();
       toast.success("Network deleted");
     },
     onError: (error) => {
@@ -276,7 +278,7 @@ export default function IdeaNetworkView() {
             setNetworkToConnect(null);
           }}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["ideas.listNetworks"] });
+            trpc.useUtils().ideas.listNetworks.invalidate();
           }}
         />
       )}
