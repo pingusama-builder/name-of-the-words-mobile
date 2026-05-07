@@ -36,6 +36,7 @@ export default function IdeaNetworkView() {
   const [networkToConnect, setNetworkToConnect] = useState<number | null>(null);
 
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
 
   // Fetch all networks
   const { data: networks = [], isLoading } = trpc.ideas.listNetworks.useQuery();
@@ -44,7 +45,7 @@ export default function IdeaNetworkView() {
   const createNetworkMutation = trpc.ideas.createNetwork.useMutation({
     onSuccess: () => {
       // Use tRPC utils for proper cache invalidation
-      trpc.useUtils().ideas.listNetworks.invalidate();
+      utils.ideas.listNetworks.invalidate();
       setNewNetworkTitle("");
       setNewNetworkDescription("");
       setShowCreateSheet(false);
@@ -59,7 +60,7 @@ export default function IdeaNetworkView() {
   const deleteNetworkMutation = trpc.ideas.deleteNetwork.useMutation({
     onSuccess: () => {
       // Use tRPC utils for proper cache invalidation
-      trpc.useUtils().ideas.listNetworks.invalidate();
+      utils.ideas.listNetworks.invalidate();
       toast.success("Network deleted");
     },
     onError: (error) => {
@@ -278,7 +279,7 @@ export default function IdeaNetworkView() {
             setNetworkToConnect(null);
           }}
           onSuccess={() => {
-            trpc.useUtils().ideas.listNetworks.invalidate();
+            utils.ideas.listNetworks.invalidate();
           }}
         />
       )}
