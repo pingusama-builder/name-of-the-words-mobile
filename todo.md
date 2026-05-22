@@ -298,22 +298,22 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 ## Bug Fixes & Missing Features
 
 ### Network Editing
-- [x] Add edit button to network cards in IdeaNetworkView
-- [x] Create EditNetworkDialog component (title, description)
-- [x] Implement updateNetwork mutation for editing
-- [x] Wire edit dialog to network card
+- [ ] Add edit button to network cards in IdeaNetworkView
+- [ ] Create EditNetworkDialog component (title, description)
+- [ ] Implement updateNetwork mutation for editing
+- [ ] Wire edit dialog to network card
 
 ### Design Rule: Every New Item Must Have Edit
-- [x] Add edit capability to all new features (networks, ideas, instances, connections)
-- [x] Ensure delete operations are paired with edit operations
-- [x] Add edit button/icon to every list item component
+- [ ] Add edit capability to all new features (networks, ideas, instances, connections)
+- [ ] Ensure delete operations are paired with edit operations
+- [ ] Add edit button/icon to every list item component
 
 
 ## Word List Pagination
 
 ### Implementation
-- [x] Add limit parameter to word list queries (backend)
-- [x] Add show-all toggle to options menu
-- [x] Update word list components to use limit (10 latest by default)
-- [x] Apply to all word views (normal, work, mutual arising)
-- [x] Test pagination and toggle functionality
+- [ ] Add limit parameter to word list queries (backend)
+- [ ] Add show-all toggle to options menu
+- [ ] Update word list components to use limit (10 latest by default)
+- [ ] Apply to all word views (normal, work, mutual arising)
+- [ ] Test pagination and toggle functionality
