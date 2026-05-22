@@ -18,6 +18,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { useWorkMode } from "@/contexts/WorkModeContext";
 import { trpc } from "@/lib/trpc";
+import OptionsMenu from "@/components/OptionsMenu";
+import { useWordList } from "@/contexts/WordListContext";
 
 type View = "collection" | "calendar" | "tags" | "add" | "sources" | "queue" | "ideas";
 
@@ -44,6 +46,7 @@ export default function Home() {
   const { user, isAuthenticated, logout } = useAuth();
   const { isWorkMode, toggle: toggleWorkMode } = useWorkMode();
   const [isMutualMode, setIsMutualMode] = useState(false);
+  const { wordLimit } = useWordList();
 
   // Ideas Mode network count
   const { data: networksData } = trpc.ideas.listNetworks.useQuery(undefined, {
@@ -52,10 +55,11 @@ export default function Home() {
   const networks = networksData || [];
 
   const modeParam = `isWork=${isWorkMode}`;
+  const limitParam = wordLimit ? `&limit=${wordLimit}` : '';
 
   const { data: words = [], isLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words", modeParam],
-    queryFn: () => apiRequest("GET", `/api/words?${modeParam}`).then(r => r.json()),
+    queryKey: ["/api/words", modeParam, wordLimit],
+    queryFn: () => apiRequest("GET", `/api/words?${modeParam}${limitParam}`).then(r => r.json()),
   });
 
   const { data: searchResults = [] } = useQuery<Word[]>({
@@ -310,6 +314,9 @@ export default function Home() {
               </svg>
             </button>
           )}
+
+          {/* Options menu */}
+          {!selectMode && <OptionsMenu />}
 
           {/* Auth button */}
           {!selectMode && (

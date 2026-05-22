@@ -284,7 +284,8 @@ export async function registerRoutes(
   app.get("/api/words", async (req, res) => {
     const userId = await getUserFromRequest(req);
     const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
-    const words = await storage.getAllWords(userId ?? undefined, isWork);
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const words = await storage.getAllWords(userId ?? undefined, isWork, limit);
     res.json(words);
   });
 

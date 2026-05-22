@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Word } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { useWordList } from "@/contexts/WordListContext";
 import WordDetail from "@/pages/WordDetail";
 
 interface SourceDeckProps {
@@ -15,10 +16,12 @@ export default function SourceDeck({ source, onClose, onShareAll }: SourceDeckPr
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  const { wordLimit } = useWordList();
 
+  const limitParam = wordLimit ? `?limit=${wordLimit}` : '';
   const { data: allWords = [], isLoading } = useQuery<Word[]>({
-    queryKey: ["/api/words"],
-    queryFn: () => apiRequest("GET", "/api/words").then(r => r.json()),
+    queryKey: ["/api/words", wordLimit],
+    queryFn: () => apiRequest("GET", `/api/words${limitParam}`).then(r => r.json()),
   });
 
   // Filter words for this source, sort by locationOrder ASC (nulls last), then by dateAdded

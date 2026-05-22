@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
+import { WordListProvider } from "./contexts/WordListContext";
 import "./index.css";
 
 if (!window.location.hash) {
@@ -59,7 +60,9 @@ const trpcClient = trpc.createClient({
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <WordListProvider>
+        <App />
+      </WordListProvider>
     </QueryClientProvider>
   </trpc.Provider>
 );

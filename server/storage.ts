@@ -41,9 +41,9 @@ function modeScope(isWork?: boolean) {
 }
 
 export interface IStorage {
-  getAllWords(userId?: string, isWork?: boolean): Promise<Word[]>;
+  getAllWords(userId?: string, isWork?: boolean, limit?: number): Promise<Word[]>;
   getWordById(id: number): Promise<Word | undefined>;
-  getWordsByDate(date: string, userId?: string, isWork?: boolean): Promise<Word[]>;
+  getWordsByDate(date: string, userId?: string, isWork?: boolean, limit?: number): Promise<Word[]>;
   searchWordsByTag(tag: string, userId?: string, isWork?: boolean): Promise<Word[]>;
   searchWords(query: string, userId?: string, isWork?: boolean): Promise<Word[]>;
   createWord(word: InsertWord): Promise<Word>;
@@ -56,13 +56,17 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getAllWords(userId?: string, isWork?: boolean): Promise<Word[]> {
+  async getAllWords(userId?: string, isWork?: boolean, limit?: number): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
     const mode = modeScope(isWork);
     const filter = mode ? and(scope, mode) : scope;
-    return db.select().from(words).where(filter).orderBy(desc(words.createdAt));
+    const baseQuery = db.select().from(words).where(filter).orderBy(desc(words.createdAt));
+    if (limit) {
+      return baseQuery.limit(limit);
+    }
+    return baseQuery;
   }
 
   async getWordById(id: number): Promise<Word | undefined> {
@@ -72,13 +76,17 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getWordsByDate(date: string, userId?: string, isWork?: boolean): Promise<Word[]> {
+  async getWordsByDate(date: string, userId?: string, isWork?: boolean, limit?: number): Promise<Word[]> {
     const db = await getDb();
     if (!db) return [];
     const scope = userScope(userId);
     const mode = modeScope(isWork);
     const filter = mode ? and(eq(words.dateAdded, date), scope, mode) : and(eq(words.dateAdded, date), scope);
-    return db.select().from(words).where(filter);
+    const baseQuery = db.select().from(words).where(filter).orderBy(desc(words.createdAt));
+    if (limit) {
+      return baseQuery.limit(limit);
+    }
+    return baseQuery;
   }
 
   async searchWordsByTag(tag: string, userId?: string, isWork?: boolean): Promise<Word[]> {
