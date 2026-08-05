@@ -7,7 +7,8 @@ COPY . .
 
 # Install corepack and pnpm with proper PATH setup
 RUN npm install -g corepack@latest && \
-    corepack pnpm install && \
+    corepack pnpm config set --global auto-install-peers true && \
+    corepack pnpm install --shamefully-hoist && \
     corepack pnpm run build
 
 ENV NODE_ENV=production
