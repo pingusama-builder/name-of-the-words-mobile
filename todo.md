@@ -298,10 +298,10 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 ## Bug Fixes & Missing Features
 
 ### Network Editing
-- [ ] Add edit button to network cards in IdeaNetworkView
-- [ ] Create EditNetworkDialog component (title, description)
-- [ ] Implement updateNetwork mutation for editing
-- [ ] Wire edit dialog to network card
+- [x] Add edit button to network cards in IdeaNetworkView
+- [x] Create EditNetworkDialog component (title, description)
+- [x] Implement updateNetwork mutation for editing
+- [x] Wire edit dialog to network card
 
 ### Design Rule: Every New Item Must Have Edit
 - [x] Add edit capability to all new features (networks, ideas, instances, connections)
