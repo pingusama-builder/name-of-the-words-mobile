@@ -5,10 +5,9 @@ WORKDIR /app
 # Copy all source files (including patches for pnpm)
 COPY . .
 
-# Install corepack and pnpm with proper PATH setup
+# Install corepack and build
 RUN npm install -g corepack@latest && \
-    corepack pnpm config set --global auto-install-peers true && \
-    corepack pnpm install --shamefully-hoist && \
+    corepack pnpm install && \
     corepack pnpm run build
 
 ENV NODE_ENV=production

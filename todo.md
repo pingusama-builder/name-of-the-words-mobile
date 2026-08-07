@@ -212,9 +212,9 @@
 ## Ideas Mode — Phase 4: Integration & Polish
 
 ### Quick-Create & Navigation
-- [ ] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
+- [x] Add floating action button (FAB) in IdeaNetworkView for quick idea creation
 - [x] Add "Create Network" button in IdeaNetworkView header
-- [ ] Add Ideas Mode badge to bottom nav showing count of networks
+- [x] Add Ideas Mode badge to bottom nav showing count of networks
 - [x] Add breadcrumb navigation in IdeaNetworkDetail (Network > Idea)
 - [x] Fix cache invalidation for instant network list updates
 
@@ -304,16 +304,16 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [ ] Wire edit dialog to network card
 
 ### Design Rule: Every New Item Must Have Edit
-- [ ] Add edit capability to all new features (networks, ideas, instances, connections)
-- [ ] Ensure delete operations are paired with edit operations
-- [ ] Add edit button/icon to every list item component
+- [x] Add edit capability to all new features (networks, ideas, instances, connections)
+- [x] Ensure delete operations are paired with edit operations
+- [x] Add edit button/icon to every list item component
 
 
 ## Word List Pagination
 
 ### Implementation
-- [ ] Add limit parameter to word list queries (backend)
-- [ ] Add show-all toggle to options menu
-- [ ] Update word list components to use limit (10 latest by default)
-- [ ] Apply to all word views (normal, work, mutual arising)
-- [ ] Test pagination and toggle functionality
+- [x] Add limit parameter to word list queries (backend)
+- [x] Add show-all toggle to options menu
+- [x] Update word list components to use limit (10 latest by default)
+- [x] Apply to all word views (normal, work, mutual arising)
+- [x] Test pagination and toggle functionality
