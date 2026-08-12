@@ -320,3 +320,4 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 
 - [x] Fix and verify JSON export failure reported by the user; confirm authenticated download and full export shape
 - [x] Prepare detailed deployment-failure diagnosis for external advisor, including evidence, configuration, attempts, and remaining diagnostics
+- [x] Replace the deployment-focused advisor report with a detailed authenticated JSON export failure diagnosis
