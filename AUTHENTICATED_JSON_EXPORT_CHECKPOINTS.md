@@ -127,3 +127,31 @@ Table 'ogafsucxrmwdwsgub9qpfn.idea_network_connections' doesn't exist
 - Whether any subsequent export query will reveal a further schema mismatch after this table is created.
 
 **No root-cause fix was applied in Checkpoint 2:** **YES.**
+
+## CHECKPOINT 3 — ROOT-CAUSE FIX
+
+**Observed root cause:** The production database did not contain `idea_network_connections`, despite that table being defined in `drizzle/schema.ts` and required by the authenticated JSON export route.
+
+**Why this caused the failure:** The export handler queries `ideaNetworkConnections` after exporting the other Ideas Mode records. MySQL rejected that query because the underlying table did not exist, and the route returned HTTP 500 before producing the export payload.
+
+**Files changed:**
+
+- `AUTHENTICATED_JSON_EXPORT_CHECKPOINTS.md`
+- `todo.md`
+
+**Smallest fix applied:** Created the single missing `idea_network_connections` table in the production database. Its columns, unique constraint, and three indexes match the existing Drizzle definition.
+
+**Migration note:** `pnpm db:push` was run first but did not apply the existing migration because the local Drizzle migration snapshot reported no new schema changes. It then exited during migration. After confirming that the database contained the other five Ideas Mode tables but not this one, the exact table definition was applied as a single schema migration through the database migration interface.
+
+**Authenticated reproduction before fix:** HTTP 500 with `JSON export failed`; server exception: `Table 'ogafsucxrmwdwsgub9qpfn.idea_network_connections' doesn't exist`.
+
+**Authenticated reproduction after fix:** The same signed-in account used the in-app **Export as JSON** control successfully. The application showed the success message **“Words exported as JSON”** and initiated the download. No subsequent export exception was logged.
+
+**Unrelated changes intentionally avoided:**
+
+- No export-query refactor.
+- No authentication changes.
+- No modification of existing Ideas Mode data.
+- No application-code changes to the export payload contract.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 3 save operation.
