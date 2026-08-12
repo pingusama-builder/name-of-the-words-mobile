@@ -155,3 +155,35 @@ Table 'ogafsucxrmwdwsgub9qpfn.idea_network_connections' doesn't exist
 - No application-code changes to the export payload contract.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 3 save operation.
+
+## CHECKPOINT 4 — REGRESSION PROTECTION
+
+**Tests added or expanded:** `server/export-observability.test.ts` now exercises the HTTP route boundary for three required states.
+
+| Test | Coverage |
+|---|---|
+| Authenticated success | Asserts HTTP 200, JSON content type, download header, full top-level export contract, parsed word tags, authenticated database access, and all six Ideas Mode arrays. |
+| Controlled authenticated failure | Forces an export query exception and asserts HTTP 500, the safe error response shape, an operation identifier, and correlated server diagnostics. |
+| Authentication state | Uses an anonymous request and asserts the intended empty tags/ideas contract without database access to authenticated export tables. |
+
+**Validation commands:**
+
+```text
+pnpm exec vitest run server/export.test.ts server/export-observability.test.ts --reporter=dot
+pnpm run build
+pnpm run check
+```
+
+**Validation result:**
+
+- **PASS:** 5 export tests passed across 2 test files.
+- **PASS:** Production build completed successfully.
+- **UNDERSTOOD PRE-EXISTING FAILURE:** `pnpm run check` remains non-zero because of existing storage/shared-deck interface errors in unrelated portions of `server/routes.ts`. It reported no errors in `server/export-observability.test.ts`, `server/export.test.ts`, `client/src/components/ExportImport.tsx`, or the changed export route section.
+
+**Authenticated success covered:** **YES.**
+
+**Controlled failure covered:** **YES.**
+
+**Authentication state covered:** **YES.**
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 4 save operation.

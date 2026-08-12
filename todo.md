@@ -324,4 +324,4 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Checkpoint 0–1: Record export baseline and add safe client/server diagnostics for failed authenticated JSON exports
 - [x] Checkpoint 2: Reproduce the signed-in JSON export HTTP path and classify the observed failure with evidence
 - [x] Checkpoint 3: Add the missing idea_network_connections table and verify signed-in JSON export succeeds
-- [ ] Checkpoint 4: Add authenticated route-level export regression tests for success, controlled failure, and authentication state
+- [x] Checkpoint 4: Add authenticated route-level export regression tests for success, controlled failure, and authentication state
