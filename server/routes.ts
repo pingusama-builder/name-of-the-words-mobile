@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getUserFromRequest } from "./_core/auth-helper";
 import { sharedDeckStorage } from "./sharedDecks";
-import { tags as tagsTable, ideaPrimaries, ideaInstances, ideaConnections, ideaNetworks, ideaNetworkPrimaries, ideaNetworkConnections } from "../drizzle/schema";
+import { ideaPrimaries, ideaInstances, ideaConnections, ideaNetworks, ideaNetworkPrimaries, ideaNetworkConnections } from "../drizzle/schema";
+import { tags } from "../shared/schema";
 import { getDb } from "./db";
 import { eq, inArray } from "drizzle-orm";
 
@@ -336,10 +337,13 @@ export async function registerRoutes(
       };
 
       if (userId) {
-        const db = getDb();
+        const db = await getDb();
+        if (!db) {
+          throw new Error("Database is not available");
+        }
 
         // Export tags
-        const allTags = await db.select().from(tagsTable).where(eq(tagsTable.userId, userId));
+        const allTags = await db.select().from(tags);
         exportedTags = allTags.map(t => t.name);
 
         // Export idea primaries

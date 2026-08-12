@@ -317,3 +317,5 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Update word list components to use limit (10 latest by default)
 - [x] Apply to all word views (normal, work, mutual arising)
 - [x] Test pagination and toggle functionality
+
+- [x] Fix and verify JSON export failure reported by the user; confirm authenticated download and full export shape

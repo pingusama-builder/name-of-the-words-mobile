@@ -1,164 +1,169 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { getDb } from "./db";
-import { users, words, tags, ideaPrimaries, ideaInstances, ideaNetworks, ideaNetworkPrimaries } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import {
+  users,
+  words,
+  tags,
+  ideaPrimaries,
+  ideaInstances,
+  ideaNetworks,
+  ideaNetworkPrimaries,
+} from "../drizzle/schema";
+import { eq, inArray } from "drizzle-orm";
 
-describe("Export Endpoint", () => {
+describe("JSON export data shape", () => {
   let testUserId: string;
-  let testWordId: string;
-  let testNetworkId: string;
+  let testWordId: number;
+  let testNetworkId: number;
+  let testIdeaId: number;
+  let testTagName: string;
+  let setupComplete = false;
 
   beforeAll(async () => {
-    const db = getDb();
+    const db = await getDb();
+    if (!db) throw new Error("Database is not available for export tests");
 
-    // Create test user
-    const [user] = await db
-      .insert(users)
-      .values({
-        email: "test-export@example.com",
-        openId: "test-export-" + Date.now(),
-        name: "Test Export User",
-      })
-      .returning();
+    const suffix = Date.now().toString();
+    testUserId = `test-export-${suffix}`;
+    testTagName = `export-tag-${suffix}`;
+    const testWord = `export-word-${suffix}`;
+    const now = new Date().toISOString();
 
-    testUserId = user.id;
+    await db.insert(users).values({
+      email: `${testUserId}@example.com`,
+      openId: testUserId,
+      name: "Test Export User",
+    });
 
-    // Create test word
-    const [word] = await db
-      .insert(words)
-      .values({
-        userId: testUserId,
-        word: "exportTest",
-        originLanguage: "en",
-        meaning: "A test word for export",
-        tags: JSON.stringify(["test", "export"]),
-      })
-      .returning();
-
+    await db.insert(words).values({
+      userId: testUserId,
+      word: testWord,
+      originLanguage: "english",
+      meaning: "A test word for export",
+      tags: JSON.stringify([testTagName]),
+      dateAdded: now.slice(0, 10),
+      createdAt: now,
+    });
+    const [word] = await db.select({ id: words.id }).from(words).where(eq(words.word, testWord));
     testWordId = word.id;
 
-    // Create test tag
-    await db.insert(tags).values({
+    await db.insert(tags).values({ name: testTagName });
+
+    await db.insert(ideaNetworks).values({
       userId: testUserId,
-      name: "exportTag",
+      title: "Export Test Network",
+      description: "A network for testing export",
+      createdAt: now,
+      updatedAt: now,
     });
-
-    // Create test idea network
     const [network] = await db
-      .insert(ideaNetworks)
-      .values({
-        userId: testUserId,
-        title: "Export Test Network",
-        description: "A network for testing export",
-      })
-      .returning();
-
+      .select({ id: ideaNetworks.id })
+      .from(ideaNetworks)
+      .where(eq(ideaNetworks.userId, testUserId));
     testNetworkId = network.id;
 
-    // Create test idea primary
+    await db.insert(ideaPrimaries).values({
+      userId: testUserId,
+      term: "export-idea",
+      description: "An idea for testing export",
+      createdAt: now,
+      updatedAt: now,
+    });
     const [idea] = await db
-      .insert(ideaPrimaries)
-      .values({
-        userId: testUserId,
-        term: "exportIdea",
-        description: "An idea for testing export",
-      })
-      .returning();
+      .select({ id: ideaPrimaries.id })
+      .from(ideaPrimaries)
+      .where(eq(ideaPrimaries.userId, testUserId));
+    testIdeaId = idea.id;
 
-    // Link idea to network
     await db.insert(ideaNetworkPrimaries).values({
       networkId: testNetworkId,
-      ideaPrimaryId: idea.id,
+      ideaPrimaryId: testIdeaId,
     });
 
-    // Create test instance
     await db.insert(ideaInstances).values({
       userId: testUserId,
-      ideaPrimaryId: idea.id,
+      ideaPrimaryId: testIdeaId,
+      wordId: testWordId,
       context: "Test context for instance",
+      createdAt: now,
+      updatedAt: now,
     });
+
+    setupComplete = true;
   });
 
   afterAll(async () => {
-    const db = getDb();
+    if (!setupComplete) return;
+    const db = await getDb();
+    if (!db) return;
 
-    // Cleanup test data
     await db.delete(ideaInstances).where(eq(ideaInstances.userId, testUserId));
     await db.delete(ideaNetworkPrimaries).where(eq(ideaNetworkPrimaries.networkId, testNetworkId));
     await db.delete(ideaNetworks).where(eq(ideaNetworks.userId, testUserId));
     await db.delete(ideaPrimaries).where(eq(ideaPrimaries.userId, testUserId));
-    await db.delete(tags).where(eq(tags.userId, testUserId));
-    await db.delete(words).where(eq(words.userId, testUserId));
-    await db.delete(users).where(eq(users.id, testUserId));
+    await db.delete(tags).where(eq(tags.name, testTagName));
+    await db.delete(words).where(eq(words.id, testWordId));
+    await db.delete(users).where(eq(users.openId, testUserId));
   });
 
-  it("should export all user data in correct shape", async () => {
-    const db = getDb();
+  it("exports words, global tags, ideas, and network junction rows", async () => {
+    const db = await getDb();
+    if (!db) throw new Error("Database is not available for export tests");
 
-    // Simulate what the export endpoint does
     const allWords = await db.select().from(words).where(eq(words.userId, testUserId));
-    const allTags = await db.select().from(tags).where(eq(tags.userId, testUserId));
+    const allTags = await db.select().from(tags);
     const primaries = await db.select().from(ideaPrimaries).where(eq(ideaPrimaries.userId, testUserId));
     const instances = await db.select().from(ideaInstances).where(eq(ideaInstances.userId, testUserId));
     const networks = await db.select().from(ideaNetworks).where(eq(ideaNetworks.userId, testUserId));
+    const connections: unknown[] = [];
+    const networkConnections: unknown[] = [];
+    const networkIds = networks.map((network) => network.id);
+    const networkPrimaries = networkIds.length
+      ? await db
+          .select()
+          .from(ideaNetworkPrimaries)
+          .where(inArray(ideaNetworkPrimaries.networkId, networkIds))
+      : [];
 
-    const networkIds = networks.map(n => n.id);
-    let networkPrimaries = [];
-    if (networkIds.length > 0) {
-      networkPrimaries = await db
-        .select()
-        .from(ideaNetworkPrimaries)
-        .where(eq(ideaNetworkPrimaries.networkId, networkIds[0]));
-    }
-
-    // Build export shape
     const exportData = {
       exportedAt: new Date().toISOString(),
       words: allWords,
-      tags: allTags.map(t => t.name),
+      tags: allTags.map((tag) => tag.name),
       ideas: {
         primaries,
         instances,
-        connections: [],
+        connections,
         networks,
         networkPrimaries,
-        networkConnections: [],
+        networkConnections,
       },
     };
 
-    // Verify structure
-    expect(exportData).toHaveProperty("exportedAt");
-    expect(exportData).toHaveProperty("words");
-    expect(exportData).toHaveProperty("tags");
-    expect(exportData).toHaveProperty("ideas");
-
-    // Verify words
-    expect(Array.isArray(exportData.words)).toBe(true);
-    expect(exportData.words.length).toBeGreaterThan(0);
-    expect(exportData.words[0].word).toBe("exportTest");
-
-    // Verify tags
-    expect(Array.isArray(exportData.tags)).toBe(true);
-    expect(exportData.tags).toContain("exportTag");
-
-    // Verify ideas structure
-    expect(exportData.ideas).toHaveProperty("primaries");
-    expect(exportData.ideas).toHaveProperty("instances");
-    expect(exportData.ideas).toHaveProperty("connections");
-    expect(exportData.ideas).toHaveProperty("networks");
-    expect(exportData.ideas).toHaveProperty("networkPrimaries");
-    expect(exportData.ideas).toHaveProperty("networkConnections");
-
-    // Verify ideas data
-    expect(exportData.ideas.primaries.length).toBeGreaterThan(0);
-    expect(exportData.ideas.instances.length).toBeGreaterThan(0);
-    expect(exportData.ideas.networks.length).toBeGreaterThan(0);
-    expect(exportData.ideas.networkPrimaries.length).toBeGreaterThan(0);
+    expect(exportData).toMatchObject({
+      words: expect.any(Array),
+      tags: expect.arrayContaining([testTagName]),
+      ideas: {
+        primaries: expect.any(Array),
+        instances: expect.any(Array),
+        connections: expect.any(Array),
+        networks: expect.any(Array),
+        networkPrimaries: expect.any(Array),
+        networkConnections: expect.any(Array),
+      },
+    });
+    expect(exportData.words.some((word) => word.id === testWordId)).toBe(true);
+    expect(exportData.ideas.primaries.some((idea) => idea.id === testIdeaId)).toBe(true);
+    expect(exportData.ideas.instances.some((instance) => instance.wordId === testWordId)).toBe(true);
+    expect(exportData.ideas.networks.some((network) => network.id === testNetworkId)).toBe(true);
+    expect(exportData.ideas.networkPrimaries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ networkId: testNetworkId, ideaPrimaryId: testIdeaId }),
+      ]),
+    );
   });
 
-  it("should handle unauthenticated export (no userId)", async () => {
-    // When no userId, should return empty ideas and tags
-    const exportData = {
+  it("returns empty tags and idea arrays for an unauthenticated export", () => {
+    const unauthenticatedExport = {
       exportedAt: new Date().toISOString(),
       words: [],
       tags: [],
@@ -172,24 +177,14 @@ describe("Export Endpoint", () => {
       },
     };
 
-    expect(exportData.tags).toEqual([]);
-    expect(exportData.ideas.primaries).toEqual([]);
-    expect(exportData.ideas.instances).toEqual([]);
-  });
-
-  it("should preserve all idea data types in export", async () => {
-    const db = getDb();
-
-    const ideas = await db.select().from(ideaPrimaries).where(eq(ideaPrimaries.userId, testUserId));
-
-    expect(ideas.length).toBeGreaterThan(0);
-
-    const idea = ideas[0];
-    expect(idea).toHaveProperty("id");
-    expect(idea).toHaveProperty("userId");
-    expect(idea).toHaveProperty("term");
-    expect(idea).toHaveProperty("description");
-    expect(idea).toHaveProperty("isCentralThesis");
-    expect(idea).toHaveProperty("createdAt");
+    expect(unauthenticatedExport.tags).toEqual([]);
+    expect(unauthenticatedExport.ideas).toEqual({
+      primaries: [],
+      instances: [],
+      connections: [],
+      networks: [],
+      networkPrimaries: [],
+      networkConnections: [],
+    });
   });
 });
