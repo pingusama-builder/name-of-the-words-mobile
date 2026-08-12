@@ -86,3 +86,44 @@ pnpm run check
 - **UNDERSTOOD PRE-EXISTING FAILURE:** The project-wide `pnpm run check` still reports existing `server/routes.ts` interface/signature errors outside the export handler, including missing storage/shared-deck methods. It reports no errors in `client/src/components/ExportImport.tsx`, the export handler’s changed lines, or `server/export-observability.test.ts`.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 1 save operation.
+
+## CHECKPOINT 2 — REPRODUCTION
+
+**Authenticated request successfully exercised:** **YES.** The deployed application was opened in the authenticated account session and the JSON export control was triggered. The endpoint was then opened directly in that same signed-in browser session.
+
+**HTTP status:** **500 Internal Server Error.** The route’s authenticated exception path explicitly returns `res.status(500)`, and the signed-in endpoint rendered the corresponding JSON error response.
+
+**Content-Type:** `application/json`. The signed-in browser rendered the returned JSON response through its JSON viewer.
+
+**Response body/error:**
+
+```json
+{
+  "message": "JSON export failed",
+  "operationId": "json-export-mspzpp01-baaig6"
+}
+```
+
+**Authenticated user resolved:** **YES.** The correlated server diagnostic event records `authenticatedUserResolved: true`.
+
+**Express export handler reached:** **YES.** The operation identifier was issued by `GET /api/export/json` and appeared in its server log.
+
+**Server exception:**
+
+```text
+Table 'ogafsucxrmwdwsgub9qpfn.idea_network_connections' doesn't exist
+```
+
+**First failing operation:** The authenticated branch’s query of `ideaNetworkConnections` failed because the production database does not contain the `idea_network_connections` table.
+
+**Classification:** **A — application/query exception.**
+
+**Evidence-supported root-cause hypothesis:** The export handler is correct to query `idea_network_connections`, but the deployed database schema is missing that Ideas Mode table. The failed query prevents the route from returning the otherwise valid export payload.
+
+**Still unproven:**
+
+- Whether `idea_network_connections` is the only missing Ideas Mode table in the production database.
+- Whether the expected schema migration was never applied, was applied to another database, or failed silently.
+- Whether any subsequent export query will reveal a further schema mismatch after this table is created.
+
+**No root-cause fix was applied in Checkpoint 2:** **YES.**

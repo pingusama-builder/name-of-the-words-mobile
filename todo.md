@@ -322,3 +322,4 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Prepare detailed deployment-failure diagnosis for external advisor, including evidence, configuration, attempts, and remaining diagnostics
 - [x] Replace the deployment-focused advisor report with a detailed authenticated JSON export failure diagnosis
 - [x] Checkpoint 0–1: Record export baseline and add safe client/server diagnostics for failed authenticated JSON exports
+- [x] Checkpoint 2: Reproduce the signed-in JSON export HTTP path and classify the observed failure with evidence
