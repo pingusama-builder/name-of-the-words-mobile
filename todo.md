@@ -319,3 +319,4 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Test pagination and toggle functionality
 
 - [x] Fix and verify JSON export failure reported by the user; confirm authenticated download and full export shape
+- [x] Prepare detailed deployment-failure diagnosis for external advisor, including evidence, configuration, attempts, and remaining diagnostics
