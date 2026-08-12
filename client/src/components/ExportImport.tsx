@@ -10,7 +10,32 @@ export default function ExportImport({ onImportSuccess }: { onImportSuccess?: ()
     setIsExporting(true);
     try {
       const response = await fetch("/api/export/json");
-      if (!response.ok) throw new Error("Export failed");
+      if (!response.ok) {
+        const contentType = response.headers.get("content-type") || "unknown";
+        const responseText = await response.text();
+        let responseBody: unknown = responseText;
+
+        if (contentType.includes("application/json")) {
+          try {
+            responseBody = responseText ? JSON.parse(responseText) : null;
+          } catch {
+            responseBody = responseText;
+          }
+        }
+
+        const safeResponseBody = typeof responseBody === "string"
+          ? responseBody.slice(0, 1_000)
+          : responseBody;
+
+        console.error("[Export JSON] request failed", {
+          status: response.status,
+          statusText: response.statusText,
+          contentType,
+          responseBody: safeResponseBody,
+        });
+
+        throw new Error(`Export failed with status ${response.status}`);
+      }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -23,7 +48,7 @@ export default function ExportImport({ onImportSuccess }: { onImportSuccess?: ()
       toast.success("Words exported as JSON");
     } catch (error) {
       toast.error("Failed to export JSON");
-      console.error(error);
+      console.error("[Export JSON] client error", error);
     } finally {
       setIsExporting(false);
     }

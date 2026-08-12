@@ -36,3 +36,53 @@
 - Querying `ideaNetworkPrimaries` with the authenticated user’s exported network IDs.
 
 **No application-code changes made in Checkpoint 0:** **YES.**
+
+## CHECKPOINT 1 — OBSERVABILITY
+
+**Files changed:**
+
+- `server/routes.ts`
+- `client/src/components/ExportImport.tsx`
+- `server/export-observability.test.ts`
+- `AUTHENTICATED_JSON_EXPORT_CHECKPOINTS.md`
+
+**Server now records:**
+
+- A per-request JSON export operation identifier.
+- Whether an authenticated user was resolved, as a boolean only.
+- The error message.
+- A short stack-trace excerpt when available.
+
+The server returns a safe JSON failure response with a generic message and the operation identifier. Raw exception details no longer travel to the browser response.
+
+**Client now records for non-2xx responses:**
+
+- HTTP status and status text.
+- Response content type.
+- A safely parsed JSON body or a text preview capped at 1,000 characters.
+- The server operation identifier when it is included in the response body.
+
+The client keeps the existing generic user-facing toast: `Failed to export JSON`.
+
+**Sensitive information intentionally excluded:**
+
+- Cookies and session tokens.
+- User identifiers.
+- Exported words, tags, ideas, instances, and payload contents.
+- Raw database exception text in the browser response or user-facing toast.
+
+**Validation commands:**
+
+```text
+pnpm exec vitest run server/export.test.ts server/export-observability.test.ts --reporter=dot
+pnpm run build
+pnpm run check
+```
+
+**Validation result:**
+
+- **PASS:** 3 focused export tests passed across 2 test files.
+- **PASS:** Production build completed successfully.
+- **UNDERSTOOD PRE-EXISTING FAILURE:** The project-wide `pnpm run check` still reports existing `server/routes.ts` interface/signature errors outside the export handler, including missing storage/shared-deck methods. It reports no errors in `client/src/components/ExportImport.tsx`, the export handler’s changed lines, or `server/export-observability.test.ts`.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 1 save operation.

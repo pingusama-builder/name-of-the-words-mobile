@@ -316,8 +316,12 @@ export async function registerRoutes(
   // ── Export / Import ──
 
   app.get("/api/export/json", async (req, res) => {
+    const operationId = `json-export-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    let authenticatedUserResolved = false;
+
     try {
       const userId = await getUserFromRequest(req);
+      authenticatedUserResolved = Boolean(userId);
       const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
       const allWords = await storage.getAllWords(userId ?? undefined, isWork);
       const parsed = allWords.map(w => ({
@@ -383,7 +387,21 @@ export async function registerRoutes(
         ideas: exportedIdeas,
       });
     } catch (error: any) {
-      res.status(500).json({ message: error.message });
+      const errorStack = error instanceof Error
+        ? error.stack?.split("\n").slice(1, 5).join("\n")
+        : undefined;
+
+      console.error("[Export JSON] failed", {
+        operationId,
+        authenticatedUserResolved,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        ...(errorStack ? { errorStack } : {}),
+      });
+
+      res.status(500).json({
+        message: "JSON export failed",
+        operationId,
+      });
     }
   });
 
