@@ -225,3 +225,17 @@ pnpm run check
 **Regression tests:** **PASS.** Five focused export tests passed; the production build also completed successfully.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 6 save operation.
+
+## CHECKPOINT 7 — PERSISTENCE BOUNDARY
+
+**Repository created/reused:** `server/exportRepository.ts` → `ExportRepository.getAuthenticatedCollections(userId)`.
+
+**Direct table knowledge removed from:** `server/exportService.ts`. The service now asks for logical authenticated export collections instead of importing Drizzle tables or expressing tag/global ownership and junction-table rules itself.
+
+**Global/user ownership rules now live in:** `ExportRepository`. It owns the global tag query, `userId` filtering for ideas and network connections, and the network-ID junction lookup for `idea_network_primaries`.
+
+**Export service still directly references DB schema:** **NO.** It uses the existing word storage abstraction and the export repository only.
+
+**Regression tests:** **PASS.** Five focused export tests passed unchanged, and the production build completed successfully.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 7 save operation.
