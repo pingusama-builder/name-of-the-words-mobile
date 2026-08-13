@@ -255,3 +255,23 @@ pnpm run check
 **Tests:** **PASS.** The route suite covers authenticated, anonymous, invalid-session, and authentication-failure results. A new `server/auth-export.test.ts` additionally verifies the classifier’s four state outcomes. Twenty focused authentication/export tests passed, and the production build completed successfully.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 8 save operation.
+
+## CHECKPOINT 9 — COMPLETE VERIFICATION
+
+**Final architecture inspected:** **PASS.** The Express route resolves explicit export authentication states, interprets `isWork`, manages HTTP headers/statuses, and delegates data assembly to `exportUserData`. `exportUserData` has no direct Drizzle or database imports and composes word storage with `ExportRepository`. `ExportRepository` owns the table references, ownership filters, tags, Ideas Mode records, and network-primary junction query.
+
+**Automated test suite:** **PASS.** `pnpm test` completed with 11 test files and 88 tests passing.
+
+**Test-isolation repair performed during verification:** **YES.** The persistent Ideas Mode storage and network-connection suites now clean up their own test rows before/after execution and use independent graph pairs in assertions. This prevents duplicate-key failures caused by run-to-run and test-to-test state leakage.
+
+**Focused export/authentication coverage:** **PASS.** The route and authentication tests cover successful authenticated export, controlled export failure, anonymous export, invalid session, and authentication-subsystem failure.
+
+**Production build:** **PASS.** `pnpm run build` completed successfully.
+
+**Type check:** **NOT CLEAN; PRE-EXISTING UNRELATED FAILURES.** `pnpm run check` still reports 35 errors in legacy word/context/shared-deck interfaces under `server/routes.ts`. The errors do not refer to the JSON export route, export service, export repository, export types, or the new export/auth tests.
+
+**Real signed-in export:** **PASS.** The authenticated local preview was opened in the connected account session. The transfer panel’s **Export as JSON** control returned HTTP 200 with `application/json`, attachment header `name-of-the-words.json`, and a 53,756-byte response. The UI displayed **“Words exported as JSON”** and the server emitted no export error.
+
+**Full user migration artifact inspected:** **YES.** The signed-in response carried the complete stable payload contract: `exportedAt`, words with parsed string tags, global tags, and six Ideas Mode arrays under `ideas`.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 9 save operation.

@@ -3,18 +3,60 @@
  * Tests for network-to-network connection functionality
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { eq, inArray } from "drizzle-orm";
+import {
+  ideaConnections,
+  ideaInstances,
+  ideaNetworkConnections,
+  ideaNetworkPrimaries,
+  ideaNetworks,
+  ideaPrimaries,
+} from "../drizzle/schema";
+import { getDb } from "./db";
 import { ideasStorage } from "./storage.ideas";
 
 const TEST_USER_ID = "test-user-network-connections";
 
+async function cleanupPersistentNetworkTestData() {
+  const db = await getDb();
+  if (!db) return;
+
+  const networks = await db
+    .select({ id: ideaNetworks.id })
+    .from(ideaNetworks)
+    .where(eq(ideaNetworks.userId, TEST_USER_ID));
+  const networkIds = networks.map((network) => network.id);
+
+  await db.delete(ideaNetworkConnections).where(eq(ideaNetworkConnections.userId, TEST_USER_ID));
+  if (networkIds.length > 0) {
+    await db.delete(ideaNetworkPrimaries).where(inArray(ideaNetworkPrimaries.networkId, networkIds));
+  }
+  await db.delete(ideaConnections).where(eq(ideaConnections.userId, TEST_USER_ID));
+  await db.delete(ideaInstances).where(eq(ideaInstances.userId, TEST_USER_ID));
+  await db.delete(ideaNetworks).where(eq(ideaNetworks.userId, TEST_USER_ID));
+  await db.delete(ideaPrimaries).where(eq(ideaPrimaries.userId, TEST_USER_ID));
+}
+
+async function cleanupNetworkConnectionsBetweenTests() {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(ideaNetworkConnections).where(eq(ideaNetworkConnections.userId, TEST_USER_ID));
+}
+
 describe("Network Connections", () => {
   let networkA: any;
   let networkB: any;
+  let networkC: any;
+  let networkD: any;
   let primaryIdea1: any;
   let primaryIdea2: any;
+  let primaryIdea3: any;
+  let primaryIdea4: any;
 
   beforeAll(async () => {
+    await cleanupPersistentNetworkTestData();
+
     // Create test networks
     primaryIdea1 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
       term: "Test Idea 1",
@@ -24,6 +66,12 @@ describe("Network Connections", () => {
     primaryIdea2 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
       term: "Test Idea 2",
       description: "Second test idea",
+    });
+    primaryIdea3 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
+      term: "Test Idea 3",
+    });
+    primaryIdea4 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
+      term: "Test Idea 4",
     });
 
     networkA = await ideasStorage.createNetwork(TEST_USER_ID, {
@@ -37,6 +85,22 @@ describe("Network Connections", () => {
       description: "Second test network",
       ideaPrimaryIds: [primaryIdea2.id],
     });
+    networkC = await ideasStorage.createNetwork(TEST_USER_ID, {
+      title: "Network C",
+      ideaPrimaryIds: [primaryIdea3.id],
+    });
+    networkD = await ideasStorage.createNetwork(TEST_USER_ID, {
+      title: "Network D",
+      ideaPrimaryIds: [primaryIdea4.id],
+    });
+  });
+
+  afterEach(async () => {
+    await cleanupNetworkConnectionsBetweenTests();
+  });
+
+  afterAll(async () => {
+    await cleanupPersistentNetworkTestData();
   });
 
   it("should create a network connection", async () => {
@@ -161,13 +225,22 @@ describe("Network Connections", () => {
 
   it("should support different connection types", async () => {
     const types = ["related", "contrast", "supports", "contradicts", "precedes", "enables"] as const;
+    const pairs = [
+      [networkA, networkB],
+      [networkA, networkC],
+      [networkA, networkD],
+      [networkB, networkC],
+      [networkB, networkD],
+      [networkC, networkD],
+    ];
 
-    for (const type of types) {
+    for (const [index, type] of types.entries()) {
+      const [networkOne, networkTwo] = pairs[index];
       const connection = await ideasStorage.createNetworkConnection(
         TEST_USER_ID,
         {
-          networkIdA: networkA.id,
-          networkIdB: networkB.id,
+          networkIdA: networkOne.id,
+          networkIdB: networkTwo.id,
           connectionType: type,
         }
       );

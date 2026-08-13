@@ -331,5 +331,7 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Checkpoint 6: Extract behavior-preserving export orchestration from the HTTP route
 - [x] Checkpoint 7: Move export schema knowledge behind cohesive persistence boundaries
 - [x] Checkpoint 8: Make export authentication states and failures explicit
-- [ ] Checkpoint 9: Run complete export verification, including a real signed-in request
+- [x] Checkpoint 9: Run complete export verification, including a real signed-in request
 - [ ] Checkpoint 10: Produce the required final handoff with checkpoint history
+- [x] Fix persistent Ideas Mode storage test isolation so the full test suite can verify the export work reliably
+- [x] Fix persistent network-connection test isolation so the complete test suite can run reliably

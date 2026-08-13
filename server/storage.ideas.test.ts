@@ -4,6 +4,16 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { eq, inArray } from "drizzle-orm";
+import {
+  ideaConnections,
+  ideaInstances,
+  ideaNetworkConnections,
+  ideaNetworkPrimaries,
+  ideaNetworks,
+  ideaPrimaries,
+} from "../drizzle/schema";
+import { getDb } from "./db";
 import { ideasStorage } from "./storage.ideas";
 import { TRPCError } from "@trpc/server";
 
@@ -11,7 +21,36 @@ import { TRPCError } from "@trpc/server";
 const TEST_USER_ID = "test-user-123";
 const OTHER_USER_ID = "other-user-456";
 
+async function cleanupPersistentIdeaTestData() {
+  const db = await getDb();
+  if (!db) return;
+
+  const networks = await db
+    .select({ id: ideaNetworks.id })
+    .from(ideaNetworks)
+    .where(eq(ideaNetworks.userId, TEST_USER_ID));
+  const networkIds = networks.map((network) => network.id);
+
+  if (networkIds.length > 0) {
+    await db.delete(ideaNetworkPrimaries).where(inArray(ideaNetworkPrimaries.networkId, networkIds));
+  }
+
+  await db.delete(ideaNetworkConnections).where(eq(ideaNetworkConnections.userId, TEST_USER_ID));
+  await db.delete(ideaConnections).where(eq(ideaConnections.userId, TEST_USER_ID));
+  await db.delete(ideaInstances).where(eq(ideaInstances.userId, TEST_USER_ID));
+  await db.delete(ideaNetworks).where(eq(ideaNetworks.userId, TEST_USER_ID));
+  await db.delete(ideaPrimaries).where(eq(ideaPrimaries.userId, TEST_USER_ID));
+}
+
 describe("Ideas Mode Storage Layer", () => {
+  beforeAll(async () => {
+    await cleanupPersistentIdeaTestData();
+  });
+
+  afterAll(async () => {
+    await cleanupPersistentIdeaTestData();
+  });
+
   // ========== PRIMARY IDEAS ==========
 
   describe("Primary Ideas", () => {
@@ -204,6 +243,7 @@ describe("Ideas Mode Storage Layer", () => {
     let idea1: any;
     let idea2: any;
     let idea3: any;
+    let idea4: any;
 
     beforeAll(async () => {
       idea1 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
@@ -214,6 +254,9 @@ describe("Ideas Mode Storage Layer", () => {
       });
       idea3 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
         term: "Idea 3",
+      });
+      idea4 = await ideasStorage.createPrimaryIdea(TEST_USER_ID, {
+        term: "Idea 4",
       });
     });
 
@@ -238,14 +281,14 @@ describe("Ideas Mode Storage Layer", () => {
       // Create first connection
       await ideasStorage.createConnection(TEST_USER_ID, {
         ideaPrimaryIdA: idea1.id,
-        ideaPrimaryIdB: idea2.id,
+        ideaPrimaryIdB: idea3.id,
         connectionType: "contrast",
       });
 
       // Try to create reverse connection (should be normalized to same)
       await expect(
         ideasStorage.createConnection(TEST_USER_ID, {
-          ideaPrimaryIdA: idea2.id,
+          ideaPrimaryIdA: idea3.id,
           ideaPrimaryIdB: idea1.id,
           connectionType: "supports",
         })
@@ -264,7 +307,7 @@ describe("Ideas Mode Storage Layer", () => {
     it("should retrieve connections bidirectionally (Issue 7)", async () => {
       const conn = await ideasStorage.createConnection(TEST_USER_ID, {
         ideaPrimaryIdA: idea1.id,
-        ideaPrimaryIdB: idea3.id,
+        ideaPrimaryIdB: idea4.id,
         connectionType: "supports",
       });
 
@@ -276,17 +319,17 @@ describe("Ideas Mode Storage Layer", () => {
       expect(connectionsFromIdea1.map(c => c.id)).toContain(conn.id);
 
       // Query from idea3 perspective
-      const connectionsFromIdea3 = await ideasStorage.getConnectionsForIdea(
-        idea3.id,
+      const connectionsFromIdea4 = await ideasStorage.getConnectionsForIdea(
+        idea4.id,
         TEST_USER_ID
       );
-      expect(connectionsFromIdea3.map(c => c.id)).toContain(conn.id);
+      expect(connectionsFromIdea4.map(c => c.id)).toContain(conn.id);
     });
 
     it("should update connection", async () => {
       const conn = await ideasStorage.createConnection(TEST_USER_ID, {
-        ideaPrimaryIdA: idea1.id,
-        ideaPrimaryIdB: idea2.id,
+        ideaPrimaryIdA: idea2.id,
+        ideaPrimaryIdB: idea3.id,
         connectionType: "contrast",
         strength: 5,
       });
@@ -302,14 +345,14 @@ describe("Ideas Mode Storage Layer", () => {
 
     it("should delete connection", async () => {
       const conn = await ideasStorage.createConnection(TEST_USER_ID, {
-        ideaPrimaryIdA: idea1.id,
-        ideaPrimaryIdB: idea3.id,
+        ideaPrimaryIdA: idea2.id,
+        ideaPrimaryIdB: idea4.id,
       });
 
       await ideasStorage.deleteConnection(conn.id, TEST_USER_ID);
 
       const connections = await ideasStorage.getConnectionsForIdea(
-        idea1.id,
+        idea2.id,
         TEST_USER_ID
       );
 
