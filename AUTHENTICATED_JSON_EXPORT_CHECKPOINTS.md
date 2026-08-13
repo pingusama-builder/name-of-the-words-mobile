@@ -201,3 +201,27 @@ pnpm run check
 **Validation:** **PASS.** Five focused export tests passed and the production build completed successfully.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 5 save operation.
+
+## CHECKPOINT 6 — EXPORT SERVICE
+
+**Service created/used:** `server/exportService.ts` → `exportUserData(userId, isWork?)`.
+
+**Responsibilities moved:**
+
+- Fetching the relevant words and normalizing stored tag JSON into exported string arrays.
+- Querying tags, Ideas Mode rows, network connections, and network-primary junction rows.
+- Applying export-specific ownership filtering through the provided user ID.
+- Constructing the typed `ExportPayload`.
+
+**Responsibilities still in route:**
+
+- Resolving the current user from the Express request.
+- Interpreting the HTTP `isWork` query parameter.
+- Setting JSON/download headers.
+- Returning HTTP success or the controlled operation-ID error response.
+
+**Public export behavior changed:** **NO.** The route still returns the same export payload and download headers.
+
+**Regression tests:** **PASS.** Five focused export tests passed; the production build also completed successfully.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 6 save operation.

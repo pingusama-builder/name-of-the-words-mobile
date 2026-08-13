@@ -3,11 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getUserFromRequest } from "./_core/auth-helper";
 import { sharedDeckStorage } from "./sharedDecks";
-import { ideaPrimaries, ideaInstances, ideaConnections, ideaNetworks, ideaNetworkPrimaries, ideaNetworkConnections } from "../drizzle/schema";
-import { tags } from "../shared/schema";
-import { createEmptyExportedIdeas, type ExportPayload } from "../shared/export";
-import { getDb } from "./db";
-import { eq, inArray } from "drizzle-orm";
+import { exportUserData } from "./exportService";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -324,62 +320,10 @@ export async function registerRoutes(
       const userId = await getUserFromRequest(req);
       authenticatedUserResolved = Boolean(userId);
       const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
-      const allWords = await storage.getAllWords(userId ?? undefined, isWork);
-      const parsed = allWords.map(w => ({
-        ...w,
-        tags: (() => { try { return JSON.parse(w.tags || "[]"); } catch { return []; } })(),
-      }));
-
-      // Export tags and ideas if user is authenticated
-      let exportedTags: string[] = [];
-      const exportedIdeas = createEmptyExportedIdeas();
-
-      if (userId) {
-        const db = await getDb();
-        if (!db) {
-          throw new Error("Database is not available");
-        }
-
-        // Export tags
-        const allTags = await db.select().from(tags);
-        exportedTags = allTags.map(t => t.name);
-
-        // Export idea primaries
-        const primaries = await db.select().from(ideaPrimaries).where(eq(ideaPrimaries.userId, userId));
-        exportedIdeas.primaries = primaries;
-
-        // Export idea instances
-        const instances = await db.select().from(ideaInstances).where(eq(ideaInstances.userId, userId));
-        exportedIdeas.instances = instances;
-
-        // Export idea connections
-        const connections = await db.select().from(ideaConnections).where(eq(ideaConnections.userId, userId));
-        exportedIdeas.connections = connections;
-
-        // Export idea networks
-        const networks = await db.select().from(ideaNetworks).where(eq(ideaNetworks.userId, userId));
-        exportedIdeas.networks = networks;
-
-        // Export network connections
-        const networkConnections = await db.select().from(ideaNetworkConnections).where(eq(ideaNetworkConnections.userId, userId));
-        exportedIdeas.networkConnections = networkConnections;
-
-        // Export network primaries (junction table, no userId column)
-        if (networks.length > 0) {
-          const networkIds = networks.map(n => n.id);
-          const junctions = await db.select().from(ideaNetworkPrimaries).where(inArray(ideaNetworkPrimaries.networkId, networkIds));
-          exportedIdeas.networkPrimaries = junctions;
-        }
-      }
+      const payload = await exportUserData(userId ?? undefined, isWork);
 
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", "attachment; filename=name-of-the-words.json");
-      const payload: ExportPayload = {
-        exportedAt: new Date().toISOString(),
-        words: parsed,
-        tags: exportedTags,
-        ideas: exportedIdeas,
-      };
       res.json(payload);
     } catch (error: any) {
       const errorStack = error instanceof Error
