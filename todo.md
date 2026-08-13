@@ -326,12 +326,12 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Checkpoint 3: Add the missing idea_network_connections table and verify signed-in JSON export succeeds
 - [x] Checkpoint 4: Add authenticated route-level export regression tests for success, controlled failure, and authentication state
 - [x] Sync the local preview with the newest shared-project version
-- [ ] Execute and checkpoint every remaining stage in the authenticated JSON export plan
+- [x] Execute and checkpoint every remaining stage in the authenticated JSON export plan
 - [x] Checkpoint 5: Define and validate the typed public export payload contract
 - [x] Checkpoint 6: Extract behavior-preserving export orchestration from the HTTP route
 - [x] Checkpoint 7: Move export schema knowledge behind cohesive persistence boundaries
 - [x] Checkpoint 8: Make export authentication states and failures explicit
 - [x] Checkpoint 9: Run complete export verification, including a real signed-in request
-- [ ] Checkpoint 10: Produce the required final handoff with checkpoint history
+- [x] Checkpoint 10: Produce the required final handoff with checkpoint history
 - [x] Fix persistent Ideas Mode storage test isolation so the full test suite can verify the export work reliably
 - [x] Fix persistent network-connection test isolation so the complete test suite can run reliably
