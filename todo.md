@@ -330,6 +330,6 @@ NOTE: Ideas Mode is fully functional. Remaining items are optional enhancements.
 - [x] Checkpoint 5: Define and validate the typed public export payload contract
 - [x] Checkpoint 6: Extract behavior-preserving export orchestration from the HTTP route
 - [x] Checkpoint 7: Move export schema knowledge behind cohesive persistence boundaries
-- [ ] Checkpoint 8: Make export authentication states and failures explicit
+- [x] Checkpoint 8: Make export authentication states and failures explicit
 - [ ] Checkpoint 9: Run complete export verification, including a real signed-in request
 - [ ] Checkpoint 10: Produce the required final handoff with checkpoint history

@@ -14,12 +14,14 @@ import type { ExportPayload } from "../shared/export";
 
 const mocks = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
+  getExportAuthenticationState: vi.fn(),
   getAllWords: vi.fn(),
   getDb: vi.fn(),
 }));
 
 vi.mock("./_core/auth-helper", () => ({
   getUserFromRequest: mocks.getUserFromRequest,
+  getExportAuthenticationState: mocks.getExportAuthenticationState,
 }));
 
 vi.mock("./storage", () => ({
@@ -84,6 +86,7 @@ describe("GET /api/export/json", () => {
 
   beforeEach(() => {
     mocks.getUserFromRequest.mockReset();
+    mocks.getExportAuthenticationState.mockReset();
     mocks.getAllWords.mockReset();
     mocks.getDb.mockReset();
     consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -104,7 +107,7 @@ describe("GET /api/export/json", () => {
 
   it("exports the full authenticated contract through the HTTP route", async () => {
     const authenticatedUserId = "authenticated-test-user";
-    mocks.getUserFromRequest.mockResolvedValue(authenticatedUserId);
+    mocks.getExportAuthenticationState.mockResolvedValue({ kind: "authenticated", userId: authenticatedUserId });
     mocks.getAllWords.mockResolvedValue([
       {
         id: 101,
@@ -134,7 +137,7 @@ describe("GET /api/export/json", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(response.headers.get("content-disposition")).toContain("name-of-the-words.json");
-    expect(mocks.getUserFromRequest).toHaveBeenCalledTimes(1);
+    expect(mocks.getExportAuthenticationState).toHaveBeenCalledTimes(1);
     expect(mocks.getAllWords).toHaveBeenCalledWith(authenticatedUserId, undefined);
     expect(mocks.getDb).toHaveBeenCalledTimes(1);
     expect(body).toMatchObject({
@@ -153,7 +156,7 @@ describe("GET /api/export/json", () => {
   });
 
   it("returns a safe diagnostic response and records authenticated export context when a query fails", async () => {
-    mocks.getUserFromRequest.mockResolvedValue("authenticated-test-user");
+    mocks.getExportAuthenticationState.mockResolvedValue({ kind: "authenticated", userId: "authenticated-test-user" });
     mocks.getAllWords.mockResolvedValue([]);
     mocks.getDb.mockResolvedValue({
       select: vi.fn(() => {
@@ -181,7 +184,7 @@ describe("GET /api/export/json", () => {
   });
 
   it("returns the intentional anonymous contract without accessing authenticated export tables", async () => {
-    mocks.getUserFromRequest.mockResolvedValue(null);
+    mocks.getExportAuthenticationState.mockResolvedValue({ kind: "anonymous" });
     mocks.getAllWords.mockResolvedValue([]);
 
     const response = await requestExport();
@@ -204,5 +207,35 @@ describe("GET /api/export/json", () => {
         networkConnections: [],
       },
     });
+  });
+
+  it("returns an explicit 401 for a present but invalid export session", async () => {
+    mocks.getExportAuthenticationState.mockResolvedValue({ kind: "invalid-session" });
+
+    const response = await requestExport();
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({
+      message: "Authentication is required to export your data",
+      code: "EXPORT_AUTH_REQUIRED",
+    });
+    expect(mocks.getAllWords).not.toHaveBeenCalled();
+    expect(mocks.getDb).not.toHaveBeenCalled();
+  });
+
+  it("returns an explicit 503 when export authentication fails unexpectedly", async () => {
+    mocks.getExportAuthenticationState.mockResolvedValue({ kind: "authentication-failed" });
+
+    const response = await requestExport();
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      message: "Authentication service is unavailable",
+      code: "EXPORT_AUTH_UNAVAILABLE",
+    });
+    expect(mocks.getAllWords).not.toHaveBeenCalled();
+    expect(mocks.getDb).not.toHaveBeenCalled();
   });
 });

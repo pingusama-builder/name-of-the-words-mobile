@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { getUserFromRequest } from "./_core/auth-helper";
+import { getExportAuthenticationState, getUserFromRequest } from "./_core/auth-helper";
 import { sharedDeckStorage } from "./sharedDecks";
 import { exportUserData } from "./exportService";
 
@@ -317,10 +317,24 @@ export async function registerRoutes(
     let authenticatedUserResolved = false;
 
     try {
-      const userId = await getUserFromRequest(req);
-      authenticatedUserResolved = Boolean(userId);
+      const authentication = await getExportAuthenticationState(req);
+      if (authentication.kind === "invalid-session") {
+        return res.status(401).json({
+          message: "Authentication is required to export your data",
+          code: "EXPORT_AUTH_REQUIRED",
+        });
+      }
+      if (authentication.kind === "authentication-failed") {
+        return res.status(503).json({
+          message: "Authentication service is unavailable",
+          code: "EXPORT_AUTH_UNAVAILABLE",
+        });
+      }
+
+      const userId = authentication.kind === "authenticated" ? authentication.userId : undefined;
+      authenticatedUserResolved = authentication.kind === "authenticated";
       const isWork = req.query.isWork === "true" ? true : req.query.isWork === "false" ? false : undefined;
-      const payload = await exportUserData(userId ?? undefined, isWork);
+      const payload = await exportUserData(userId, isWork);
 
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", "attachment; filename=name-of-the-words.json");

@@ -239,3 +239,19 @@ pnpm run check
 **Regression tests:** **PASS.** Five focused export tests passed unchanged, and the production build completed successfully.
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 7 save operation.
+
+## CHECKPOINT 8 — AUTHENTICATION SEMANTICS
+
+**Authenticated behavior:** A verified session produces user-scoped words plus tags and Ideas Mode collections through the authenticated export branch.
+
+**Anonymous behavior:** An absent session is an intentional, explicit anonymous export mode. It produces the existing anonymous payload behavior without querying authenticated tags or Ideas Mode tables.
+
+**Expired/invalid session behavior:** A present session rejected as invalid returns HTTP 401 with `{ message, code: "EXPORT_AUTH_REQUIRED" }`. It cannot fall through to anonymous export.
+
+**Authentication subsystem failure behavior:** An unexpected authentication failure returns HTTP 503 with `{ message, code: "EXPORT_AUTH_UNAVAILABLE" }`. It also cannot fall through to anonymous export.
+
+**Implicit `userId ?? undefined` switching remains:** **NO.** The route now resolves an `ExportAuthenticationState` first and selects the authenticated or explicitly anonymous service path from that state.
+
+**Tests:** **PASS.** The route suite covers authenticated, anonymous, invalid-session, and authentication-failure results. A new `server/auth-export.test.ts` additionally verifies the classifier’s four state outcomes. Twenty focused authentication/export tests passed, and the production build completed successfully.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 8 save operation.
