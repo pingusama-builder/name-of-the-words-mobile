@@ -10,6 +10,7 @@ import {
   ideaPrimaries,
   tags,
 } from "../drizzle/schema";
+import type { ExportPayload } from "../shared/export";
 
 const mocks = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
@@ -128,7 +129,7 @@ describe("GET /api/export/json", () => {
     mocks.getDb.mockResolvedValue(db);
 
     const response = await requestExport();
-    const body = await response.json();
+    const body: ExportPayload = await response.json();
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");

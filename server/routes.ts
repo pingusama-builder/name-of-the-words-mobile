@@ -5,6 +5,7 @@ import { getUserFromRequest } from "./_core/auth-helper";
 import { sharedDeckStorage } from "./sharedDecks";
 import { ideaPrimaries, ideaInstances, ideaConnections, ideaNetworks, ideaNetworkPrimaries, ideaNetworkConnections } from "../drizzle/schema";
 import { tags } from "../shared/schema";
+import { createEmptyExportedIdeas, type ExportPayload } from "../shared/export";
 import { getDb } from "./db";
 import { eq, inArray } from "drizzle-orm";
 
@@ -331,14 +332,7 @@ export async function registerRoutes(
 
       // Export tags and ideas if user is authenticated
       let exportedTags: string[] = [];
-      let exportedIdeas = {
-        primaries: [],
-        instances: [],
-        connections: [],
-        networks: [],
-        networkPrimaries: [],
-        networkConnections: [],
-      };
+      const exportedIdeas = createEmptyExportedIdeas();
 
       if (userId) {
         const db = await getDb();
@@ -352,40 +346,41 @@ export async function registerRoutes(
 
         // Export idea primaries
         const primaries = await db.select().from(ideaPrimaries).where(eq(ideaPrimaries.userId, userId));
-        exportedIdeas.primaries = primaries as any;
+        exportedIdeas.primaries = primaries;
 
         // Export idea instances
         const instances = await db.select().from(ideaInstances).where(eq(ideaInstances.userId, userId));
-        exportedIdeas.instances = instances as any;
+        exportedIdeas.instances = instances;
 
         // Export idea connections
         const connections = await db.select().from(ideaConnections).where(eq(ideaConnections.userId, userId));
-        exportedIdeas.connections = connections as any;
+        exportedIdeas.connections = connections;
 
         // Export idea networks
         const networks = await db.select().from(ideaNetworks).where(eq(ideaNetworks.userId, userId));
-        exportedIdeas.networks = networks as any;
+        exportedIdeas.networks = networks;
 
         // Export network connections
         const networkConnections = await db.select().from(ideaNetworkConnections).where(eq(ideaNetworkConnections.userId, userId));
-        exportedIdeas.networkConnections = networkConnections as any;
+        exportedIdeas.networkConnections = networkConnections;
 
         // Export network primaries (junction table, no userId column)
         if (networks.length > 0) {
           const networkIds = networks.map(n => n.id);
           const junctions = await db.select().from(ideaNetworkPrimaries).where(inArray(ideaNetworkPrimaries.networkId, networkIds));
-          exportedIdeas.networkPrimaries = junctions as any;
+          exportedIdeas.networkPrimaries = junctions;
         }
       }
 
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Content-Disposition", "attachment; filename=name-of-the-words.json");
-      res.json({
+      const payload: ExportPayload = {
         exportedAt: new Date().toISOString(),
         words: parsed,
         tags: exportedTags,
         ideas: exportedIdeas,
-      });
+      };
+      res.json(payload);
     } catch (error: any) {
       const errorStack = error instanceof Error
         ? error.stack?.split("\n").slice(1, 5).join("\n")

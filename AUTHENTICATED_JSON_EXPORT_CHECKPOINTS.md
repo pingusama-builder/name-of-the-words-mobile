@@ -187,3 +187,17 @@ pnpm run check
 **Authentication state covered:** **YES.**
 
 **Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 4 save operation.
+
+## CHECKPOINT 5 — EXPORT CONTRACT
+
+**Export payload type:** `shared/export.ts` → `ExportPayload`.
+
+**Supporting public types:** `ExportedWord`, `ExportedIdeas`, and `IdeaNetworkConnection` make the successful JSON response’s word-tag normalization, six Ideas Mode collections, and network-connection row shape explicit.
+
+**Public structure changed:** **NO.** The existing response remains `{ exportedAt, words, tags, ideas }`; words still expose `tags` as string arrays; `ideas` retains the same six arrays.
+
+**HTTP test validates contract:** **YES.** The authenticated route-level test consumes its successful JSON response as `ExportPayload` and asserts the stable headers and all public top-level data groups.
+
+**Validation:** **PASS.** Five focused export tests passed and the production build completed successfully.
+
+**Commit/checkpoint identifier:** Recorded in the accompanying Checkpoint 5 save operation.
